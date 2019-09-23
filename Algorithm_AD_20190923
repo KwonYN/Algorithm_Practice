@@ -1,0 +1,208 @@
+// 14501: 퇴사
+// 더욱 깔끔한 DFS!!
+#if 0
+#include <stdio.h>
+#define MAX     (20)
+
+void Input(void);
+void DFS(int L, int sum);
+void Print(void);
+
+int N;
+int Ti[MAX];
+int Pi[MAX];
+int Max_Profit;
+int List[MAX];
+int cnt;
+
+int main(void)
+{
+	Input();
+	DFS(1, 0);
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	Max_Profit = 0;
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++)
+	{
+		scanf("%d %d", &Ti[i], &Pi[i]);
+	}
+}
+
+void DFS(int L, int sum)
+{
+	int i;
+
+#if 01
+	// Ver. 1
+	if (L > N)
+	{
+		if (Max_Profit < sum) Max_Profit = sum;
+		return;
+	}
+
+	if (L + Ti[L] - 1 <= N)
+	{
+		List[cnt++] = Pi[L];
+		DFS(L + Ti[L], sum + Pi[L]);
+		List[--cnt] = 0;
+	}
+
+	DFS(L + 1, sum);
+#else
+	// Ver. 2
+	if (L > N + 1) return;
+	if (Max_Profit < sum) Max_Profit = sum;
+
+	for (i = L; i <= N; i++)
+	{
+		DFS(i + Ti[L], sum + Pi[L]);
+	}
+#endif
+}
+void Print(void)
+{
+	printf("%d\n", Max_Profit);
+}
+#endif
+
+
+
+// 20190923
+// 문제 E9: [TST] Snake	: 몇 초 후에 게임이 끝나는지!!!!
+#if 0
+#include <stdio.h>
+#define MM	(101)
+#define MAX	(10001)
+#define FRUIT		(3)
+#define SNAKE		(2)
+#define WALLORSNAKE	(1)
+#define BLANK		(0)
+
+typedef struct
+{
+	int T;
+	char C;
+}COMMAND;
+COMMAND Com[MAX];
+
+typedef struct
+{
+	int y, x;
+}NODE;
+NODE Q[MM * MM * 10];
+
+
+void Input(void);
+void Operation(void);
+void Print(void);
+
+int Map[MM][MM];
+int N, K, L;
+int time;
+int Wp, Rp;
+
+int main(void)
+{
+	Input();
+	Operation();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, r, c;
+
+	scanf("%d", &N);
+	for (i = 0; i <= N + 1; i++)
+	{
+		Map[0][i] = Map[i][0] = Map[N + 1][i] = Map[i][N + 1] = WALLORSNAKE;
+	}
+
+	scanf("%d", &K);
+	for (i = 1; i <= K; i++)
+	{
+		scanf("%d %d", &r, &c);
+		Map[r][c] = FRUIT;
+	}
+
+	scanf("%d", &L);
+	for (i = 1; i <= L; i++) scanf("%d %c", &Com[i].T, &Com[i].C);
+}
+
+void Operation(void)
+{
+	int i, j;
+	int order = 1;
+	int dir = 0;
+	int dy[4] = { 0, -1, 0, 1 };
+	int dx[4] = { 1, 0, -1, 0 };
+	int HEAD;
+	int tmp;
+	Wp = Rp = 0;
+
+	time = 0;
+	Q[Wp].y = 1;
+	Q[Wp++].x = 1;
+	HEAD = Wp - 1;
+
+	for (;;)
+	{
+		Map[Q[HEAD].y][Q[HEAD].x] = WALLORSNAKE;
+		Q[Wp].y = Q[HEAD].y + dy[dir];
+		Q[Wp++].x = Q[HEAD].x + dx[dir];
+		HEAD = Wp - 1;
+		if (Map[Q[HEAD].y][Q[HEAD].x] == WALLORSNAKE) break;
+
+		if (Map[Q[HEAD].y][Q[HEAD].x] != FRUIT)
+		{
+			Map[Q[Rp].y][Q[Rp].x] = BLANK;
+			Rp++;
+		}
+
+		time++;
+		if (time == Com[order].T)
+		{
+			if (Com[order].C == 'L')
+			{
+				dir = (dir + 1) % 4;
+			}
+			else
+			{
+				dir = (dir + 3) % 4;
+			}
+			order++;
+		}
+
+		/* 디버깅을 위해서!
+		printf("====================\n");
+		printf("time = %d\n", time);
+		for (i = 0; i <= N + 1; i++)
+		{
+		for (j = 0; j <= N + 1; j++)
+		{
+		printf("%d ", Map[i][j]);
+		}
+		printf("\n");
+		}
+		printf("\n");
+		printf("Length = %d\n", Wp - Rp);
+		printf("====================\n");
+		*/
+	}
+}
+
+void Print(void)
+{
+	printf("%d\n", time + 1);
+}
+#endif
