@@ -535,3 +535,147 @@ int Print(void)
         return sum;
 }
 #endif
+
+// 쉬프트도 한 번.. ㅋㅋ
+#if 0
+#include <stdio.h>
+#define MAX_MIC (1001)
+#define MAX (110)
+
+typedef struct
+{
+        int y, x;
+        int count;
+        int dir;
+}MIC;
+MIC mic[MAX_MIC];
+
+typedef struct
+{
+        int num;
+        int max;
+        int dir;
+}CHECK;
+CHECK chk[MAX][MAX];
+
+void Input(void);
+void InQ(int yy, int xx, int n, int d);
+MIC * OutQ(void);
+void IInnQQ(void);
+void Operation(void);
+int Print(void);
+
+int T;
+int N, K, M;
+int dy[5] = { 0, -1, 1, 0, 0 };
+int dx[5] = { 0, 0, 0, -1, 1 };
+int dd[5] = { 0, 2, 1, 4, 3 };
+int Wp, Rp;
+
+int main(void)
+{
+        int i, j;
+
+        scanf("%d", &T);
+        for(i = 1; i <= T; i++)
+        {
+                Input();
+                Operation();
+                printf("#%d %d\n", i, Print());
+        }
+
+        return 0;
+}
+
+void Input(void)
+{
+        int r, c, tcount, tdir;
+        int i;
+
+        Wp = Rp = 0;
+        scanf("%d %d %d", &N, &M, &K);
+        for(i = 1; i <= K; i++)
+        {
+                scanf("%d %d %d %d", &r, &c, &tcount, &tdir);
+                InQ(r, c, tcount, tdir);
+        }
+}
+
+void InQ(int yy, int xx, int n, int d)
+{
+        mic[Wp].y = yy;
+        mic[Wp].x = xx;
+        mic[Wp].count = n;
+        mic[Wp++].dir = d;
+}
+
+MIC * OutQ(void)
+{
+        return &(mic[Rp++]);
+}
+
+void Operation(void)
+{
+        int i;
+        int ny, nx, nc, nd;
+        MIC * out = (MIC *)0x0;
+
+        while( M-- )
+        {
+                for(i = 0; i < Wp; i++)
+                {
+                        out = OutQ();
+                        nd = out->dir;
+                        ny = out->y + dy[nd];
+                        nx = out->x + dx[nd];
+                        nc = out->count;
+                        if(ny == 0 || ny == N - 1 || nx == 0 || nx == N - 1)
+                        {
+                                nc >>= 1;
+                                nd = dd[nd];
+                        }
+                        chk[ny][nx].num += nc;
+                        if(chk[ny][nx].max < nc)
+                        {
+                                chk[ny][nx].max = nc;
+                                chk[ny][nx].dir = nd;
+                        }
+                }
+                IInnQQ();
+        }
+}
+
+void IInnQQ(void)
+{
+        int i, j;
+    	CHECK tmp = {0};
+
+        Wp = Rp = 0;
+        for(i = 0; i < N; i++)
+        {
+                for(j = 0; j < N; j++)
+                {
+                        if(chk[i][j].num > 0)
+                        {
+                                InQ(i, j, chk[i][j].num, chk[i][j].dir);
+                        }
+                    	if(chk[i][j].max > 0)
+                        {
+                            chk[i][j] = tmp;
+                        }
+                }
+        }
+}
+
+int Print(void)
+{
+        int i, j, sum = 0;
+
+        for(i = 0; i < Wp; i++)
+        {
+                sum += mic[i].count;
+        }
+
+        return sum;
+}
+#endif
