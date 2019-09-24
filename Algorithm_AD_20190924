@@ -1,0 +1,252 @@
+// 20190924
+// 벽장문의 이동
+/*
+	- 눈 앞에 가까운 곳만 방문할 것이 아니라, 지금 당장 멀더라도 나중에 효율적일 수도 있음!!
+	- ★그렇기 때문에 이러할 가능성이 있다면, 완전탐색처럼 조금 멀리라도 가야 마땅!★
+*/
+#if 0
+#include <stdio.h>
+#define MAX	(21)
+#define ABS(a)	( ((a) < 0) ? -(a) : (a) )
+
+void Input(void);
+void DFS(int L, int cnt);
+void Print(void);
+
+int n, m;
+int open1, open2;
+int door[MAX];
+int order[MAX];
+int Min;
+
+int main(void)
+{
+	Input();
+	DFS(1, 0);
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i;
+
+	Min = 987654321;
+	scanf("%d", &n);
+	scanf("%d %d", &open1, &open2);
+	door[ open1 ] = door[ open2 ] = 1;	// 열려있다!!
+	scanf("%d", &m);
+	for (i = 1; i <= m; i++) scanf("%d", &order[i]);
+}
+
+void DFS(int L, int cnt)
+{
+	int a, b;
+	int tmp;
+
+	if (cnt >= Min) return;
+	if (L > m)
+	{
+		if (Min > cnt) Min = cnt;
+		return;
+	}
+
+	if ( door[ order[L] ] == 1 )	// 열려있다면?
+	{
+		DFS(L + 1, cnt);
+	}
+	else // 닫혀있다면?
+	{
+		a = ABS(open1 - order[L]);
+		b = ABS(open2 - order[L]);
+
+		door[open1] = 0;	door[order[L]] = 1;
+		tmp = open1;		open1 = order[L];
+		DFS(L + 1, cnt + a);
+		order[L] = open1;	open1 = tmp;
+		door[open1] = 1;	door[order[L]] = 0;
+
+		door[open2] = 0;	door[order[L]] = 1;
+		tmp = open2;		open2 = order[L];
+		DFS(L + 1, cnt + b);
+		order[L] = open2;	open2 = tmp;
+		door[open2] = 1;	door[order[L]] = 0;
+		/*if ( a <= b )
+		{
+			door[open1] = 0;	door[order[L]] = 1;
+			tmp = open1;		open1 = order[L];		
+			DFS(L + 1, cnt + a);
+			order[L] = open1;	open1 = tmp;
+			door[ open1 ] = 1;	door[ order[L] ] = 0;
+		}
+		if ( a >= b )
+		{
+			door[ open2 ] = 0;	door[ order[L] ] = 1;
+			tmp = open2;		open2 = order[L];
+			DFS(L + 1, cnt + b);
+			order[L] = open2;	open2 = tmp;
+			door[ open2 ] = 1;	door[ order[L] ] = 0;
+		}*/
+	}
+}
+
+void Print(void)
+{
+	printf("%d\n", Min);
+}
+#endif
+
+
+#include <stdio.h>
+#define MAX	(52)
+
+void Input(void);
+void Operation(void);
+void Cleaner1(void);
+void Cleaner2(void);
+void Arr_Copy(void);
+void Print(void);
+
+int R, C;
+int T;
+int Room[MAX][MAX];
+int chk_Room[MAX][MAX];
+int Remain_Dust;
+int cleaner_y[2];
+int cleaner_x[2];
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+
+int main(void)
+{
+	Input();
+	Operation();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j, order = 0;
+
+	Remain_Dust = 2;
+	scanf("%d %d %d", &R, &C, &T);
+	for (i = 1; i <= R; i++)
+	{
+		for (j = 1; j <= C; j++)
+		{
+			scanf("%d", &Room[i][j]);
+			Remain_Dust += Room[i][j];
+			if ( Room[i][j] == -1 )
+			{
+				cleaner_y[order] = i;
+				cleaner_x[order++] = j;
+			}
+		}
+	}
+	//printf("Remain_Dust = %d\n", Remain_Dust);
+}
+
+void Operation(void)
+{
+	int i, j, k, ny, nx;
+	int diff;
+
+	while (T--)
+	{	// 1) 이중for문 돌면서 먼지가 있으면 4방으로 확산해주는 단계
+		for (i = 1; i <= R; i++)
+		{
+			for (j = 1; j <= C; j++)
+			{
+				if (Room[i][j] >= 0)
+				{
+					diff = Room[i][j] / 5;
+					for (k = 0; k < 4; k++)
+					{
+						ny = i + dy[k];
+						nx = j + dx[k];
+						if (ny < 1 || ny > R || nx < 1 || nx > C || Room[ny][nx] == -1) continue;
+						chk_Room[ny][nx] += diff;
+						Room[i][j] -= diff;
+					}
+					chk_Room[i][j] += Room[i][j];
+				}
+			}
+		}
+		
+		chk_Room[cleaner_y[0]][cleaner_x[0]] = -1;
+		chk_Room[cleaner_y[1]][cleaner_x[1]] = -1;
+
+		/*
+		for (i = 0; i <= R + 1; i++)
+		{
+			for (j = 0; j <= C + 1; j++)
+			{
+				printf("%3d", chk_Room[i][j]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+		*/
+
+		// 2) 일단 확산을 다 시키고 Cleaner1, 2 함수를 통해 공기청정기를 돌리는 단계
+		Cleaner1();
+		Cleaner2();
+
+		// 3) Room배열에 chk_Room 배열을 복사하고, 확산에 사용해줬던 chk_Room 배열을 초기화 하는 단계
+		Arr_Copy();
+	}
+}
+
+void Cleaner1(void)
+{
+	int i, yy = cleaner_y[0];
+
+	Remain_Dust -= chk_Room[yy - 1][1];
+	// 좌
+	for (i = yy - 2; i >= 1; i--) chk_Room[i + 1][1] = chk_Room[i][1];
+	// 상
+	for (i = 2; i <= C; i++) chk_Room[1][i - 1] = chk_Room[1][i];
+	// 우
+	for (i = 2; i <= yy; i++) chk_Room[i - 1][C] = chk_Room[i][C];
+	// 하
+	for (i = C - 1; i >= 2; i--) chk_Room[yy][i + 1] = chk_Room[yy][i];
+	chk_Room[yy][2] = 0;
+}
+
+void Cleaner2(void)
+{
+	int i, yy = cleaner_y[1];
+
+	Remain_Dust -= chk_Room[yy + 1][1];
+	// 좌
+	for (i = yy + 2; i <= R; i++) chk_Room[i - 1][1] = chk_Room[i][1];
+	// 하
+	for (i = 2; i <= C; i++) chk_Room[R][i - 1] = chk_Room[R][i];
+	// 우
+	for (i = R - 1; i >= yy; i--) chk_Room[i + 1][C] = chk_Room[i][C];
+	// 상
+	for (i = C - 1; i >= 2; i--) chk_Room[yy][i + 1] = chk_Room[yy][i];
+	chk_Room[yy][2] = 0;
+}
+
+void Arr_Copy(void)
+{
+	int i, j;
+
+	for (i = 1; i <= R; i++)
+	{
+		for (j = 1; j <= C; j++)
+		{
+			Room[i][j] = chk_Room[i][j];
+			chk_Room[i][j] = 0;
+		}
+	}
+}
+
+void Print(void)
+{
+	printf("%d\n", Remain_Dust);
+}
