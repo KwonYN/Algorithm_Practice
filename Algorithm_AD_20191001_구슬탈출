@@ -1,0 +1,113 @@
+// 20191001
+// R구슬과 B구슬이 "동시에" 구멍에 빠져도 시패!! 라는 조건을 무시...;;
+#if 01
+#include <stdio.h>
+#define MAX     (15)
+
+typedef struct
+{
+        int y, x;
+}NODE;
+NODE r;
+NODE b;
+
+void Input(void);
+void DFS(int L, int ry, int rx, int by, int bx);
+void Print(void);
+
+int N, M;
+char Board[MAX][MAX];
+int dy[4] = {-1, 1, 0, 0};
+int dx[4] = {0, 0, -1, 1};
+int flag;
+
+int main(void)
+{
+        Input();
+        DFS(1, r.y, r.x, b.y, b.x);
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+        char tmp[MAX];
+
+        flag = 0;
+        scanf("%d %d", &N, &M);
+        for(i = 0; i < N; i++)
+        {
+                scanf("%s", tmp);
+                for(j = 0; j < M; j++)
+                {
+                        Board[i][j] = tmp[j];
+                        if(Board[i][j] == 'R')
+                        {
+                                r.y = i;
+                                r.x = j;
+                        }
+                        else if(Board[i][j] == 'B')
+                        {
+                                b.y = i;
+                                b.x = j;
+                        }
+                }
+        }
+}
+
+void DFS(int L, int ry, int rx, int by, int bx)
+{
+        int i, j, k;
+        int nry, nrx, nby, nbx;
+
+        //printf("L = %d, ry = %d, rx = %d, by = %d, bx = %d\n", L, ry, rx, by, bx);
+        if(L > 10) return;
+
+        for(i = 0; i < 4; i++)
+        {
+                nry = ry;               nrx = rx;
+                nby = by;               nbx = bx;
+                for(j = 0; ; j++)
+                {
+                        if((Board[nry + dy[i]][nrx + dx[i]] == '#') || (Board[nry][nrx] == 'O')) break;
+                        nry += dy[i];
+                        nrx += dx[i];
+                }
+                for(k = 0; ; k++)
+                {
+                        if((Board[nby + dy[i]][nbx + dx[i]] == '#') || (Board[nby][nbx] == 'O')) break;
+                        nby += dy[i];
+                        nbx += dx[i];
+                }
+
+                if(Board[nby][nbx] == 'O') continue;
+                if(nry == nby && nrx == nbx)
+                {
+                        if(j > k)
+                        {
+                                nry -= dy[i];
+                                nrx -= dx[i];
+                        }
+                        else
+                        {
+                                nby -= dy[i];
+                                nbx -= dx[i];
+                        }
+                }
+
+                if(Board[nry][nrx] == 'O')
+                {
+                        flag = 1;
+                        break;
+                }
+                DFS(L + 1, nry, nrx, nby, nbx);
+        }
+}
+
+void Print(void)
+{
+        printf("%d\n", flag);
+}
+#endif
