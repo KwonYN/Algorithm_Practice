@@ -1,0 +1,184 @@
+// 20191004
+// [BOJ. 16236] 아기 상어
+#if 0
+#include <stdio.h>
+#define MAX	(25)
+#define INF     (987654321)
+
+typedef struct
+{
+	int y, x;
+	int size;
+}SK;
+SK Shark;
+
+typedef struct
+{
+        int y, x;
+}QUEUE;
+QUEUE Q[MAX * MAX * 2];
+
+void Input(void);
+void InQ(int yy, int xx);
+QUEUE * OutQ(void);
+void Operation(void);
+int BFS(int sy, int sx);
+void Init_Visit(void);
+void Print(void);
+
+int N;
+int Ocean[MAX][MAX];
+int time;
+//int Size[10];
+int Visit[MAX][MAX];
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int eat;
+int Wp, Rp;
+int min_y, min_x, min_time;
+
+int main(void)
+{
+	Input();
+	Operation();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j, tmp;
+
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%d", &tmp);
+			Ocean[i][j] = tmp;
+			//Size[tmp]++;
+			if (tmp == 9)
+			{
+				Ocean[i][j] = 0;
+				Shark.y = i;    Shark.x = j;
+				Shark.size = 2;
+			}
+		}
+	}
+}
+
+void InQ(int yy, int xx)
+{
+	Q[Wp].y = yy;
+	Q[Wp++].x = xx;
+}
+
+QUEUE * OutQ(void)
+{
+	return (&Q[Rp++]);
+}
+
+void Operation(void)
+{
+        int eat_fish, cnt, flag = 1;
+        int i;
+
+        eat = 0;
+	time = 0;
+        while( flag )
+        {
+                Init_Visit();
+                eat_fish = BFS(Shark.y, Shark.x);
+                if(eat_fish == INF) break;
+                //Size[ Ocean[min_y][min_x] ]--;
+                Ocean[min_y][min_x] = 0;
+                Shark.y = min_y;        Shark.x = min_x;
+                time += eat_fish;
+                if(++eat == Shark.size)
+                {
+                        Shark.size++;
+                        eat = 0;
+                }
+                /*
+                cnt = 0;
+                for(i = 1; i < Shark.size; i++)
+                {
+                        cnt += Size[i];
+                }
+                if(!cnt) flag = 0;
+                */
+        }
+}
+
+int BFS(int sy, int sx)
+{
+        QUEUE * out = (QUEUE *)0x0;
+        int i;
+        int ny, nx;
+        int flag = 0;
+
+        Wp = Rp = 0;
+        InQ(sy, sx);
+        Visit[sy][sx] = 0;
+
+        while( Wp > Rp )
+        {
+                out = OutQ();
+                sy = out->y;
+                sx = out->x;
+                for(i = 0; i < 4; i++)
+                {
+                        ny = sy + dy[i];
+                        nx = sx + dx[i];
+                        if( ny < 1 || ny > N || nx < 1 || nx > N ) continue;      // N*N 공간 넘어가면 안됨
+                        if( Ocean[ny][nx] > Shark.size || Visit[ny][nx] != -1 ) continue; // 물고기 크기가 아기상어보다 크면 못 지나감
+                        // 그럼 일단 지나갈 수 있음
+                        Visit[ny][nx] = Visit[sy][sx] + 1;
+                        InQ(ny, nx);    // 크기가 같아도 지나갈 수는 있음!
+                        if( Ocean[ny][nx] != 0 && Ocean[ny][nx] < Shark.size )     // 아기상어가 먹을 수 있는 물고기다?
+                        {
+                                if( min_time > Visit[ny][nx] )    // 1) 일단 이동 거리(시간) 최소를 구함
+                                {
+                                        min_y = ny;
+                                        min_x = nx;
+                                        min_time = Visit[ny][nx];
+                                }
+                                else if( min_time == Visit[ny][nx] )      // 거리(시간)이 같을 경우 위치 측정
+                                {
+                                        if( min_y > ny )        // 2) 가장 위쪽?
+                                        {
+                                                min_y = ny;
+                                                min_x = nx;
+                                        }
+                                        else if ( min_y == ny )  // 30 그것도 아니라면 가장 왼쪽?
+                                        {
+                                                if( min_x > nx ) min_x = nx;
+                                        }
+                                }
+                        }
+                }
+        }
+
+        return min_time;
+}
+
+void Init_Visit(void)
+{
+	int i, j;
+
+	min_y = min_x = min_time = INF;
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			Visit[i][j] = -1;
+		}
+	}
+}
+
+void Print(void)
+{
+        printf("%d\n", time);
+}
+#endif
