@@ -138,6 +138,7 @@ int BFS(int sy, int sx)
                         InQ(ny, nx);    // 크기가 같아도 지나갈 수는 있음!
                         if( Ocean[ny][nx] != 0 && Ocean[ny][nx] < Shark.size )     // 아기상어가 먹을 수 있는 물고기다?
                         {
+			        // ★★ 세부적인 조건 설계 단에서 꼭 구체적으로 다 만들어서 문제 진입하자!! ★★
                                 if( min_time > Visit[ny][nx] )    // 1) 일단 이동 거리(시간) 최소를 구함
                                 {
                                         min_y = ny;
