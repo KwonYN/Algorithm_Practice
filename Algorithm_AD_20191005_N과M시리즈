@@ -229,3 +229,722 @@ void Print_List(void)
 	printf("\n");
 }
 #endif
+
+
+
+// [BOJ. 15652] N과 M (5) : 중복 불가한 수열
+/*
+	[Input]
+	4 2
+	9 8 7 1
+
+	[Output]
+	1 7
+	1 8
+	1 9
+	7 1
+	7 8
+	7 9
+	8 1
+	8 7
+	8 9
+	9 1
+	9 7
+	9 8
+*/
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void Sort(void);
+void DFS(int L);
+void Print_List(void);
+
+int N, M;
+int Num[9];
+int chk[9];
+int List[9];
+
+int main(void)
+{
+	Input();
+	DFS(1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i;
+
+	scanf("%d %d", &N, &M);
+	for(i = 1; i <= N; i++) scanf("%d", &Num[i]);
+
+	Sort();
+}
+
+void Sort(void)
+{
+	int i, j, tmp;
+
+	for(i = 1; i < N; i++)
+	{
+		for(j = i + 1; j <= N; j++)
+		{
+			if(Num[i] > Num[j])
+			{
+				tmp = Num[i];
+				Num[i] = Num[j];
+				Num[j] = tmp;
+			}
+		}
+	}
+}
+
+void DFS(int L)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = 1; i <= N; i++)
+	{
+		if(chk[i]) continue;
+		chk[i] = 1;
+		List[L] = Num[i];
+		DFS(L + 1);
+		List[L] = 0;
+		chk[i] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+
+// [BOJ. 15652] N과 M (6) : 중복 불가한 조합 && 오름차순
+/*
+	[Input]
+	4 2
+	9 8 7 1
+
+	[Output]
+	1 7
+	1 8
+	1 9
+	7 8
+	7 9
+	8 9
+*/
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void Sort(void);
+void DFS(int L, int s_idx);
+void Print_List(void);
+
+int N, M;
+int Num[9];
+int List[9];
+
+int main(void)
+{
+	Input();
+	DFS(1, 1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i;
+
+	scanf("%d %d", &N, &M);
+	for(i = 1; i <= N; i++) scanf("%d", &Num[i]);
+
+	Sort();
+}
+
+void Sort(void)
+{
+	int i, j, tmp;
+
+	for(i = 1; i < N; i++)
+	{
+		for(j = i + 1; j <= N; j++)
+		{
+			if(Num[i] > Num[j])
+			{
+				tmp = Num[i];
+				Num[i] = Num[j];
+				Num[j] = tmp;
+			}
+		}
+	}
+}
+
+void DFS(int L, int s_idx)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = s_idx; i <= N; i++)
+	{
+		List[L] = Num[i];
+		DFS(L + 1, i + 1);
+		List[L] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+
+// [BOJ. 15652] N과 M (7) : 중복 가능한 수열
+/*
+	[Input]
+	4 2
+	9 8 7 1
+
+	[Output]
+	1 1
+	1 7
+	1 8
+	1 9
+	7 1
+	7 7
+	7 8
+	7 9
+	8 1
+	8 7
+	8 8
+	8 9
+	9 1
+	9 7
+	9 8
+	9 9
+*/
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void Sort(void);
+void DFS(int L);
+void Print_List(void);
+
+int N, M;
+int Num[9];
+int List[9];
+
+int main(void)
+{
+	Input();
+	DFS(1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i;
+
+	scanf("%d %d", &N, &M);
+	for(i = 1; i <= N; i++) scanf("%d", &Num[i]);
+
+	Sort();
+}
+
+void Sort(void)
+{
+	int i, j, tmp;
+
+	for(i = 1; i < N; i++)
+	{
+		for(j = i + 1; j <= N; j++)
+		{
+			if(Num[i] > Num[j])
+			{
+				tmp = Num[i];
+				Num[i] = Num[j];
+				Num[j] = tmp;
+			}
+		}
+	}
+}
+
+void DFS(int L)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = 1; i <= N; i++)
+	{
+		List[L] = Num[i];
+		DFS(L + 1);
+		List[L] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+
+// [BOJ. 15652] N과 M (8) : 중복 가능한 조합
+/*
+	[Input]
+	4 2
+	9 8 7 1
+
+	[Output]
+	1 1
+	1 7
+	1 8
+	1 9
+	7 7
+	7 8
+	7 9
+	8 8
+	8 9
+	9 9
+*/
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void Sort(void);
+void DFS(int L, int s_idx);
+void Print_List(void);
+
+int N, M;
+int Num[9];
+int List[9];
+
+int main(void)
+{
+	Input();
+	DFS(1, 1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i;
+
+	scanf("%d %d", &N, &M);
+	for(i = 1; i <= N; i++) scanf("%d", &Num[i]);
+
+	Sort();
+}
+
+void Sort(void)
+{
+	int i, j, tmp;
+
+	for(i = 1; i < N; i++)
+	{
+		for(j = i + 1; j <= N; j++)
+		{
+			if(Num[i] > Num[j])
+			{
+				tmp = Num[i];
+				Num[i] = Num[j];
+				Num[j] = tmp;
+			}
+		}
+	}
+}
+
+void DFS(int L, int s_idx)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = s_idx; i <= N; i++)
+	{
+		List[L] = Num[i];
+		DFS(L + 1, i);
+		List[L] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+// ★여기부터(N과 M(9) ~ (12))가 조금 헷갈릴 수 있고 중요한 부분!!★
+// 도자기 문제 생각!!
+// [BOJ. 15663] N과 M (9) : ★중복 불가한 수열 (같은 수가 여러 번 입력되어도 다른 케이스가 아니라 같은 케이스이기 때문에 중복된 것으로 봄!!! 중복되면 안됨!!)★d
+/*
+	[Input]
+	4 2
+	9 7 9 1
+
+	[Output]
+	1 7
+	1 9
+	7 1
+	7 9
+	9 1
+	9 7
+	9 9
+*/
+#if 01
+#include <stdio.h>
+
+void Input(void);
+void Sort(void);
+void DFS(int L);
+void Print_List(void);
+
+int N, M;
+int chk[10001];
+int List[9];
+int Max;
+
+int main(void)
+{
+	Input();
+	DFS(1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, tmp;
+
+	Max = 0;
+	scanf("%d %d", &N, &M);
+	for(i = 1; i <= N; i++)
+	{
+		scanf("%d", &tmp);
+		chk[tmp]++;
+		if(Max < tmp) Max = tmp;
+	}
+}
+
+void DFS(int L)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = 1; i <= Max; i++)
+	{
+		if( chk[i] == 0 ) continue;
+		chk[ i ]--;
+		List[L] = i;
+		DFS(L + 1);
+		List[L] = 0;
+		chk[ i ]++;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+// 도자기 같은 
+// [BOJ. 15664] N과 M (10) : 중복 가능한 조합 && 비내림차순(오름차순 + 같은 것도 가능)
+/*
+	[Input]
+	4 2
+	9 7 9 1
+
+	[Output]
+	1 7
+	1 9
+	7 9
+	9 9
+*/
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void Sort(void);
+void DFS(int L, int s_idx);
+void Print_List(void);
+
+int N, M;
+int chk[10001];
+int List[9];
+int Max;
+
+int main(void)
+{
+	Input();
+	DFS(1, 1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, tmp;
+
+	Max = 0;
+	scanf("%d %d", &N, &M);
+	for(i = 1; i <= N; i++)
+	{
+		scanf("%d", &tmp);
+		chk[tmp]++;
+		if(Max < tmp) Max = tmp;
+	}
+}
+
+void DFS(int L, int s_idx)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = s_idx; i <= Max; i++)
+	{
+		if( chk[i] == 0 ) continue;
+		chk[ i ]--;
+		List[L] = i;
+		DFS(L + 1, i);
+		List[L] = 0;
+		chk[ i ]++;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+// [BOJ. 15665] N과 M (11) : ★중복 가능한 순열, But 똑같은 순열(수 아니고 순열!! 수 한 줄에 나열한 것!)을 두 번 중복해서 출력하면 안됨!★
+/*
+	[Input]
+	4 2
+	9 7 9 1
+
+	[Output]
+	1 1
+	1 7
+	1 9
+	7 1
+	7 7
+	7 9
+	9 1
+	9 7
+	9 9
+*/
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void Sort(void);
+void DFS(int L);
+void Print_List(void);
+
+int N, M;
+int chk[10001];
+int List[9];
+int Max;
+
+int main(void)
+{
+	Input();
+	DFS(1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, tmp;
+
+	Max = 0;
+	scanf("%d %d", &N, &M);
+	for(i = 1; i <= N; i++)
+	{
+		scanf("%d", &tmp);
+		chk[tmp]++;
+		if(Max < tmp) Max = tmp;
+	}
+}
+
+void DFS(int L)
+{
+	int i, prev = -1;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = 1; i <= Max; i++)
+	{
+		if( chk[i] == 0 || prev == i) continue;
+		prev = i;
+		List[L] = i;
+		DFS(L + 1);
+		List[L] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+
+// [BOJ. 15666] N과 M (12) : 중복 가능한 조합 && 비내림차순
+/*
+	[Input]
+	4 2
+	9 7 9 1
+
+	[Output]
+	1 1
+	1 7
+	1 9
+	7 7
+	7 9
+	9 9
+*/
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void Sort(void);
+void DFS(int L, int s_idx);
+void Print_List(void);
+
+int N, M;
+int chk[10001];
+int List[9];
+int Max;
+
+int main(void)
+{
+	Input();
+	DFS(1, 1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, tmp;
+
+	Max = 0;
+	scanf("%d %d", &N, &M);
+	for(i = 1; i <= N; i++)
+	{
+		scanf("%d", &tmp);
+		chk[tmp]++;
+		if(Max < tmp) Max = tmp;
+	}
+}
+
+void DFS(int L, int s_idx)
+{
+	int i, prev = -1;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = s_idx; i <= Max; i++)
+	{
+		if( chk[i] == 0 || prev == i) continue;
+		prev = i;
+		List[L] = i;
+		DFS(L + 1, i);
+		List[L] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
