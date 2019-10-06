@@ -1,0 +1,107 @@
+// 20191006
+// [BOJ. 14500] 테트로미노
+#if 01
+#include <stdio.h>
+#define MAX     (510)
+
+void Input(void);
+void Operation(void);
+int Get_Max(int yy, int xx);
+void Print(void);
+
+int N, M;
+int Paper[MAX][MAX];
+int Max_sum;
+
+int main(void)
+{
+        Input();
+        Operation();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        Max_sum = 0;
+        scanf("%d %d", &N, &M);
+        for(i = 0; i < N; i++)
+        {
+                for(j = 0; j < M; j++)
+                {
+                        scanf("%d", &Paper[i][j]);
+                }
+        }
+}
+
+void Operation(void)
+{
+        int i, j, r;
+
+        for(i = 0; i < N; i++)
+        {
+                for(j = 0; j < M; j++)
+                {
+                        r = Get_Max(i, j);
+                        if(Max_sum < r) Max_sum = r;
+                }
+        }
+}
+
+int Get_Max(int yy, int xx)
+{
+        int max = 0;
+        int results[19] = {0};
+        int i;
+
+        if(N - yy >= 2 && M - xx >= 2)
+        {
+                results[0] = Paper[yy][xx] + Paper[yy][xx + 1] + Paper[yy + 1][xx] + Paper[yy + 1][xx + 1];     // 2*2 블럭
+        }
+        if(N - yy >= 2 && M - xx >= 3)
+        {
+                results[1] = Paper[yy][xx] + Paper[yy + 1][xx] + Paper[yy + 1][xx + 1] + Paper[yy + 1][xx + 2];
+                results[2] = Paper[yy][xx + 2] + Paper[yy + 1][xx] + Paper[yy + 1][xx + 1] + Paper[yy + 1][xx + 2];
+                results[3] = Paper[yy][xx] + Paper[yy + 1][xx] + Paper[yy][xx + 1] + Paper[yy][xx + 2];
+                results[4] = Paper[yy][xx] + Paper[yy + 1][xx + 2] + Paper[yy][xx + 1] + Paper[yy][xx + 2];
+                results[5] = Paper[yy][xx] + Paper[yy][xx + 1] + Paper[yy + 1][xx + 1] + Paper[yy + 1][xx + 2];
+                results[6] = Paper[yy + 1][xx] + Paper[yy + 1][xx + 1] + Paper[yy][xx + 1] + Paper[yy][xx + 2];
+                results[7] = Paper[yy + 1][xx] + Paper[yy + 1][xx + 1] + Paper[yy + 1][xx + 2] + Paper[yy][xx + 1];
+                results[8] = Paper[yy][xx] + Paper[yy][xx + 1] + Paper[yy][xx + 2] + Paper[yy + 1][xx + 1];
+        }
+        if(N - yy >= 3 && M - xx >= 2)
+        {
+                results[9] = Paper[yy][xx] + Paper[yy + 1][xx] + Paper[yy + 2][xx] + Paper[yy + 2][xx + 1];
+                results[10] = Paper[yy][xx + 1] + Paper[yy + 1][xx + 1] + Paper[yy + 2][xx + 1] + Paper[yy + 2][xx];
+                results[11] = Paper[yy][xx] + Paper[yy + 1][xx] + Paper[yy + 2][xx] + Paper[yy][xx + 1];
+                results[12] = Paper[yy][xx + 1] + Paper[yy + 1][xx + 1] + Paper[yy + 2][xx + 1] + Paper[yy][xx];
+                results[13] = Paper[yy][xx] + Paper[yy + 1][xx] + Paper[yy + 1][xx + 1] + Paper[yy + 2][xx + 1];
+                results[14] = Paper[yy + 1][xx] + Paper[yy + 2][xx] + Paper[yy + 1][xx + 1] + Paper[yy][xx + 1];
+                results[15] = Paper[yy][xx] + Paper[yy + 1][xx] + Paper[yy + 2][xx] + Paper[yy + 1][xx + 1];
+                results[16] = Paper[yy][xx + 1] + Paper[yy + 1][xx + 1] + Paper[yy + 2][xx + 1] + Paper[yy + 1][xx];
+        }
+        if(N - yy >= 1 && M - xx >= 4)
+        {
+                results[17] = Paper[yy][xx] + Paper[yy][xx + 1] + Paper[yy][xx + 2] + Paper[yy][xx + 3];
+        }
+        if(N - yy >= 4 && M - xx >= 1)
+        {
+                results[18] = Paper[yy][xx] + Paper[yy + 1][xx] + Paper[yy + 2][xx] + Paper[yy + 3][xx];
+        }
+
+        for(i = 0; i < 19; i++)
+        {
+                if(max < results[i]) max = results[i];
+        }
+
+        return max;
+}
+
+void Print(void)
+{
+        printf("%d\n", Max_sum);
+}
+#endif
