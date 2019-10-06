@@ -1,0 +1,231 @@
+// [BOJ. 15649] N과 M (1)
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void DFS(int L);
+void Print_List(void);
+
+int N, M;
+int chk[9];
+int List[9];
+
+int main(void)
+{
+	Input();
+	DFS(1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	scanf("%d %d", &N, &M);
+}
+
+void DFS(int L)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = 1; i <= N; i++)
+	{
+		if(chk[i]) continue;
+		chk[i] = 1;
+		List[L] = i;
+		DFS(L + 1);
+		List[L] = 0;
+		chk[i] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+
+
+// [BOJ. 15650] N과 M (2)
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void DFS(int L, int s_idx);
+void Print_List(void);
+
+int N, M;
+int List[9];
+
+int main(void)
+{
+	Input();
+	DFS(1, 1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	scanf("%d %d", &N, &M);
+}
+
+void DFS(int L, int s_idx)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = s_idx; i <= N; i++)
+	{
+		List[L] = i;
+		DFS(L + 1, i + 1);
+		List[L] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++)	printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+
+
+// [BOJ. 15651] N과 M (3)
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void DFS(int L);
+void Print_List(void);
+
+int N, M;
+int List[9];
+
+int main(void)
+{
+	Input();
+	DFS(1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	scanf("%d %d", &N, &M);
+}
+
+void DFS(int L)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = 1; i <= N; i++)
+	{
+		List[L] = i;
+		DFS(L + 1);
+		List[L] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
+
+
+
+
+
+// [BOJ. 15652] N과 M (4) : 중복 가능한 수열 && 오름차순
+/*
+	1 1 1
+	1 1 2
+	1 1 3
+	1 2 2
+	1 2 3
+	1 3 3
+	2 2 2
+	2 2 3
+	2 3 3
+	3 3 3
+*/
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void DFS(int L, int s_idx);
+void Print_List(void);
+
+int N, M;
+int List[9];
+
+int main(void)
+{
+	Input();
+	DFS(1, 1);
+
+	return 0;
+}
+
+void Input(void)
+{
+	scanf("%d %d", &N, &M);
+}
+
+void DFS(int L, int s_idx)
+{
+	int i;
+
+	if(L > M)
+	{
+		Print_List();
+		return;
+	}
+
+	for(i = s_idx; i <= N; i++)
+	{
+		List[L] = i;
+		DFS(L + 1, i);
+		List[L] = 0;
+	}
+}
+
+void Print_List(void)
+{
+	int i;
+
+	for(i = 1; i <= M; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+#endif
