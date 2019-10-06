@@ -1,0 +1,225 @@
+// 20191006
+// [BOJ. 2479] 경로 찾기 (SPJ.)
+#include <stdio.h>
+#define NAX (1010)
+#define KAX (35)
+   
+void Input(void);
+int Get_Distance(char *p, char *q);
+int BFS(int ss);
+void Recursive_Print(int num);
+   
+int N;  // 이진코드 수
+int K;  // 이진코드 길이
+char Code[NAX][KAX];
+int Visit[NAX];
+int Path[NAX];
+int Queue[NAX * 10];
+int s, e;
+int Wp, Rp;
+   
+int main(void)
+{
+    int r;
+   
+    Input();
+    r = BFS(s);
+    if (r) Recursive_Print( e );
+    else printf("-1\n");
+   
+    return 0;
+}
+   
+void Input(void)
+{
+    int i;
+   
+    scanf("%d %d", &N, &K);
+    for (i = 1; i <= N; i++)
+    {
+        scanf("%s", Code[i]);
+    }
+    scanf("%d %d", &s, &e);
+}
+   
+int Get_Distance(char *p, char *q)
+{
+    int i, cnt = 0;
+   
+    for (i = 0; i < K; i++)
+    {
+        if ( (*p - '0') ^ (*q - '0') ) cnt++;
+        p++; q++;
+    }
+   
+    return cnt;
+}
+   
+int BFS(int ss)
+{
+    int i;
+    int out;
+   
+    Queue[Wp++] = ss;
+    Visit[ss] = 1;
+    Path[ss] = 0;
+   
+    while (Wp > Rp)
+    {
+        out = Queue[Rp++];
+        for (i = 1; i <= N; i++)
+        {
+            if ( Visit[i] ) continue;
+            if ( Get_Distance( Code[out], Code[i] ) == 1 )
+            {
+                Queue[Wp++] = i;
+                Visit[i] = 1;
+                Path[i] = out;
+                if (i == e ) return 1;
+            }
+        }
+    }
+   
+    return 0;
+}
+   
+void Recursive_Print(int num)
+{
+    if (num == 0) return;
+   
+    Recursive_Print(Path[num]);
+    printf("%d ", num);
+}
+
+
+
+
+// 한 Lv에서 도전할 수 있는 최악의 경우의 수가 1000가지, 거기에 1000 깊이까지 들어갈 수 있으니... 이건 못 하잖아!!!
+// DFS로 접근했다가 RTE 뜸...
+#if 0
+#include <stdio.h>
+#define NAX     (1010)
+#define KAX     (35)
+#define INF     (987654321)
+
+void Input(void);
+void Set_Data(void);
+void DFS(int L, int s);
+void Path_Copy(int L);
+//void Recur_Print(int n);
+void Print(void);
+
+int N, K;
+char Hamming[NAX][KAX];
+int s, e;
+int Set_Dist[NAX][NAX];
+int Path[NAX];
+int result_Path[NAX];
+int chk[NAX];
+int end_flag;
+int min_cnt;
+
+int main(void)
+{
+        Input();
+        Set_Data();
+        Path[1] = s;    chk[s] = 1;
+        DFS(2, s);
+        if(!end_flag) printf("-1\n");
+        else Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+        char tmp[KAX];
+
+        scanf("%d %d", &N, &K);
+        for(i = 1; i <= N; i++)
+        {
+                scanf("%s", tmp);
+                for(j = 0; j < K; j++)
+                {
+                        Hamming[i][j] = tmp[j];
+                }
+        }
+        scanf("%d %d", &s, &e);
+}
+
+void Set_Data(void)
+{
+        int i, j, k;
+        int distance;
+
+        min_cnt = INF;
+        end_flag = 0;
+        for(i = 1; i < N; i++)
+        {
+                for(j = i + 1; j <= N; j++)
+                {
+                        distance = 0;
+                        for(k = 0; k < K; k++)
+                        {
+                                if(Hamming[i][k] != Hamming[j][k]) distance++;
+                        }
+                        Set_Dist[i][j] = Set_Dist[j][i] = distance;
+                }
+        }
+}
+
+void DFS(int L, int s)
+{
+        int i;
+
+        if(L > min_cnt) return;
+        if(s == e)
+        {
+                if(min_cnt > L - 1)
+                {
+                        min_cnt = L;
+                        Path_Copy(L);
+                        end_flag = 1;
+                }
+                return;
+        }
+        if(L > N) return;
+
+        for(i = 1; i <= N; i++)
+        {
+                if( Set_Dist[s][i] != 1 || chk[i] ) continue;
+                chk[i] = 1;         Path[L] = i;
+                DFS(L + 1, i);
+                Path[L] = 0;        chk[i] = 0;
+        }
+}
+
+/*
+void Recur_Print(int n)
+{
+        if(n == 0) return;
+
+        Recur_Print(Path[n]);
+        printf("%d ", n);
+}
+*/
+
+void Path_Copy(int L)
+{
+        int i;
+
+        for(i = 1; i < L; i++)
+        {
+                result_Path[i] = Path[i];
+        }
+}
+
+void Print(void)
+{
+        int i;
+
+        for(i = 1; i < min_cnt; i++) printf("%d ", result_Path[i]);
+        printf("\n");
+}
+#endif
