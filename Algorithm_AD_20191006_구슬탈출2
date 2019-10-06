@@ -1,3 +1,4 @@
+
 // 20191006
 // [BOJ. 13460] 구슬 탈출 2
 #if 01
@@ -61,36 +62,48 @@ void DFS(int L, int ry, int rx, int by, int bx)
 
         if(L > 10) return;
 
-        for(i = 0; i < 4; i++)
+        for(i = 0; i < 4; i++)  // 사방으로 갈 수 있음
         {
+                // DFS 처음 시작할 때, 그리고 DFS 후에 백트래킹으로 돌아왔을 때는 움직이기 전의 초기 위치로 와있어야 함
                 nry = ry;       nrx = rx;
                 nby = by;       nbx = bx;
+                // 우선 빨간 구슬 먼저 이동시킬 것
                 for(jr = 0; ; jr++)
                 {
+                        // 앞칸이 벽이라면 그 전에 멈춰야 하고, 지금 있는 칸이 구멍이라면 멈춰야 함
                         if( Board[ nry + dy[i] ][ nrx + dx[i] ] == '#' || Board[ nry ][ nrx ] == 'O' ) break;
+                        // 그렇지 않으면 그 방향으로 갈 수 있음
                         nry += dy[i];   nrx += dx[i];
                 }
+                // 그 다음으로 파란 구슬을 이동시킬 것
                 for(jb = 0; ; jb++)
                 {
+                        // 앞칸이 벽이라면 그 전에 멈춰야 하고, 지금 있는 칸이 구멍이라면 멈춰야 함
                         if( Board[ nby + dy[i] ][ nbx + dx[i] ] == '#' || Board[ nby ][ nbx ] == 'O' ) break;
+                        // 그렇지 않으면 그 방향으로 갈 수 있음
                         nby += dy[i];   nbx += dx[i];
                 }
+                // 각 구슬을 독립적으로 생각하고 일단 움직인 후에,,, 보니까 두 구슬이 같은 위치에 와있다? (이런 경우는 있을 수 없으므로 조작을 가해줘야 함!)
                 if( nry == nby && nrx == nbx )
                 {
+                        // 일단 둘 다 구멍에 빠졌다면, 실패인 경우이므로 "이 방향으로 보내면 안돼..!!" 그렇기 때문에 다른 방향으로 보내줘야 함
                         if( Board[nby][nbx] == 'O' ) continue;
-                        if(jr < jb)
+                        // 두 구슬이 구멍에 같이 들어가는 경우가 아니라 벽 때문에 막힌 것임. 근데 같은 곳에 있음(있을 수 없는 경우)
+                        if(jr < jb)     // 파란 구슬이 더 멀리서 왔다면, 한 칸 뒤로 물러줘야
                         {
                                 nby -= dy[i];   nbx -= dx[i];
                         }
-                        else
+                        else    // 빨간 구슬이 더 멀리서 왔다면, 한 칸 뒤로 물러줘야
                         {
                                 nry -= dy[i];   nrx -= dx[i];
                         }
                 }
+                // 그런 후에도 빨간 구슬이 구멍에 있다면, 탈출한 케이스이므로 기록을 해주어야 함. 그런데 "최소 횟수"로 빼줘야 하므로 최소값을 갱신하도록 함
                 if( Board[nry][nrx] == 'O' )
                 {
                         if(end_flag > L) end_flag = L;
                 }
+                // 이동 후에 빨간 구슬과 파란 구슬이 같은 위치에 있지 않았고, 파란 구슬만 구멍에 빠졌다? 그러면 다른 방향으로 부내줘야 하므로 continue를 시켜 4방 설정해주는 for문으로 가야 함!
                 else if( Board[nby][nbx] == 'O' ) continue;
 
                 DFS(L + 1, nry, nrx, nby, nbx);
