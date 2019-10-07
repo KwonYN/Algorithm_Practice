@@ -1,0 +1,107 @@
+// 20191007
+// [BOJ. 17471] 게리맨더링
+#if 01
+#include <stdio.h>
+#define MAX	(16)
+#define INF	(987654321)
+#define ABS(a)	( ((a) < 0) ? -(a) : (a) )
+
+void Input(void);
+void Operation(void);
+void DFS(int L, int s_idx);
+void Print(void);
+
+int N;
+int population[MAX];
+int Injub[MAX][MAX];
+int Visit[MAX];
+int Min_Diff;
+int sumA, sumB;
+int Lv;
+int ListA[MAX / 2];
+int ListB[MAX / 2];
+int lcnt;
+
+int main(void)
+{
+	Input();
+	Operation();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, tmp, ttmp;
+
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++) scanf("%d", &population[i]);
+	for (i = 1; i <= N; i++)
+	{
+		scanf("%d", &tmp);
+		Injub[i][0] = tmp;
+		while (tmp--)
+		{
+			scanf("%d", &ttmp);
+			Injub[i][ttmp] = Injub[ttmp][i] = 1;
+		}
+	}
+	for (i = 1; i <= N; i++) Injub[0][i] = 1;
+}
+
+void Operation(void)
+{
+	int i;
+
+	sumA = 0;	sumB = 0;
+	Min_Diff = INF;
+	for (i = 1; i < N; i++)	// 선거구 A의 구역 수(1구역을 포함하는 쪽을 A라고 할 것)
+	{
+		Lv = i;
+		DFS_A(1, 0);
+	}
+}
+
+void DFS(int L, int s_idx)
+{
+	int i, r;
+
+	if (L > )
+	if (L > Lv)
+	{
+		Print_ListA(L);
+		DFS_B(1, 0);
+		return;
+	}
+
+	for (i = 1; i <= N; i++)
+	{
+		if ( Visit[i] || Injub[s_idx][i] != 1 ) continue;
+		ListA[L] = i;
+		Visit[i] = 1;
+		sumA += population[i];
+
+		DFS_A(L + 1, i);
+
+		sumA -= population[i];
+		Visit[i] = 0;
+		ListA[L] = 0;
+	}
+}
+
+void Print(void)
+{
+	for (int i = 0; i <= N; i++)
+	{
+		for (int j = 0; j <= N; j++)
+		{
+			printf("%d ", Injub[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+
+	printf("%d\n", ((Min_Diff == INF) ? -1 : Min_Diff));
+}
+#endif
