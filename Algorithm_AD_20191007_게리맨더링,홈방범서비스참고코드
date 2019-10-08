@@ -135,3 +135,116 @@ void Print(void)
 	printf("%d\n", ((Min_Diff == INF) ? -1 : Min_Diff));
 }
 #endif
+
+
+
+
+// 홈 방범 서비스 참고 코드
+// for문 + 배열 활용
+#if 0
+#include <stdio.h>
+
+typedef struct st
+{
+	int r;
+	int c;
+}POS;
+#define MAX (21)
+void Set_Data(void);
+int Operation(void);
+
+int N, M;
+int cost[30];
+POS House[MAX*MAX];
+int su_h;
+int MAP[MAX][MAX];
+int max_t;
+int max;
+
+int main(void)
+{
+	int t, T;
+
+	scanf("%d", &T);
+
+	for (t = 1; t < 30; t++)
+	{
+		cost[t] = t*t + (t - 1)*(t - 1);
+	}
+
+	for (t = 1; t <= T; t++)
+	{
+		Set_Data();
+
+		printf("#%d %d\n", t, Operation());
+	}
+}
+
+void Set_Data(void)
+{
+	int i, j;
+
+	scanf("%d %d", &N, &M);
+
+	su_h = 1;
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%d", &MAP[i][j]);
+			if (MAP[i][j] == 1)
+			{
+				House[su_h].r = i;
+				House[su_h++].c = j;
+			}
+		}
+	}
+
+	su_h--;
+
+	for (i = 1; cost[i] <= su_h*M; i++);
+	max_t = i - 1;
+
+	max = 0;
+}
+
+int Operation(void)
+{
+	int i, j, u, x;
+	int cover[50][MAX][MAX] = { 0 };
+	int w, h;
+	int distance;
+	int cnt;
+
+	for (i = 1; i <= N; i++) //마름모의 가운데점을 잡는다. 
+	{
+		for (j = 1; j <= N; j++)
+		{
+			for (u = 1; u <= su_h; u++)
+			{
+				h = i - House[u].r;
+				if (h < 0) h *= -1;
+
+				w = j - House[u].c;
+				if (w < 0) w *= -1;
+
+				distance = w + h;
+				cover[distance][i][j]++;
+				//가운뎃점을 i,j로 잡았을 때 각 거리 크기의 마름모가
+				//몇 채를 잡을 수 있는지 
+			}
+
+			cnt = 0;
+			for (x = 1; x <= max_t; x++) //마름모 크기
+			{
+				cnt += cover[x - 1][i][j]; //거리로 쟀으니 1 빼줘야함.
+				if (cnt > max && cost[x] <= cnt*M) max = cnt;
+			}
+		}
+	}
+
+	return max;
+}
+#endif
+
