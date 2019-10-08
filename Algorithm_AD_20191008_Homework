@@ -1,0 +1,540 @@
+// 20191008
+// [BOJ. 17472] 다리 만들기 2
+#if 0
+#include <stdio.h>
+
+void Input(void);
+
+void Print(void);
+
+int main(void)
+{
+	freopen("in.txt", "r", stdin);
+
+	Input();
+
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+
+}
+
+void Print(void)
+{
+
+}
+#endif
+
+
+
+
+// BFS의 바리에이션
+// 홈 방범 서비스
+// 은애님
+#include <stdio.h>
+
+#define CMAX 40
+#define MAX (20 + 2)
+
+typedef struct st
+{
+	int y;
+	int x;
+}POS;
+
+void CostArray(void);
+void SetData(void);
+void Operation(void);
+void BFS(int y, int x);
+void InitBFS(void);
+void InQueue(int y, int x);
+POS OutQueue(void);
+
+int T, N, M;
+int c[CMAX + 1];
+int a[MAX][MAX];
+int v[MAX][MAX];
+POS Q[MAX * MAX];
+int cnt_home, max_K, ans;
+int wp, rp;
+
+int main(void)
+{
+	int tc;
+
+	CostArray();
+
+	scanf("%d", &T);
+
+	for (tc = 1; tc <= T; tc++)
+	{
+		SetData();
+		Operation();
+		printf("#%d %d\n", tc, ans);
+	}
+
+	return 0;
+}
+
+void CostArray(void) // 서비스 크기에 따른 비용 기록
+{
+	int i;
+	int sum = 1;
+
+	for (i = 1; i <= CMAX; i++)
+	{
+		sum += (i - 1) * 4;
+		c[i] = sum;
+	}
+}
+
+void SetData(void) // 초기화 및 입력 받음
+{
+	int i, j;
+
+	cnt_home = max_K = ans = 0;
+
+	scanf("%d %d", &N, &M); // 도시 크기, 비용
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%1d", &a[i][j]);
+			if (a[i][j]) cnt_home++; // 집 수
+		}
+	}
+}
+
+void Operation(void)
+{
+	int i, j;
+	int tk = M * cnt_home; // 모든 집 포함한다고 했을 때 얻을 수 있는 수익
+
+	while (c[max_K] <= tk) max_K++; // 비용이 최대 수익을 넘지 않는 서비스 영역 구함
+	max_K--;
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			BFS(i, j); // 각 점을 가운데로 해서 크기 1 ~ Max_K 검사
+			InitBFS();
+		}
+	}
+}
+
+void BFS(int y, int x)
+{
+	int dy[] = { -1, +1, 0, 0 };
+	int dx[] = { 0, 0, -1, +1 };
+	int i, ny, nx;
+	int cnt = 0; // 영역에 포함된 집 개수
+	int k = 1; // 크기
+	POS out;
+
+	v[y][x] = k;
+	InQueue(y, x);
+	if (a[y][x]) cnt++;
+
+	while (wp > rp)
+	{
+		out = OutQueue();
+		if (v[out.y][out.x] == k) // K += 1 하기 위함
+		{
+			if (cnt * M >= c[k]) // 비용보다 수익이 같거나 크면 
+			{
+				if (cnt > ans) ans = cnt;
+			}
+			if (k == max_K || cnt == cnt_home) return; // 모든 경우 해봄 
+			k++;
+		}
+
+		for (i = 0; i < 4; i++)
+		{
+			ny = out.y + dy[i];
+			nx = out.x + dx[i];
+			if (ny < 1 || ny > N || nx < 1 || nx > N) continue;
+			if (v[ny][nx]) continue;
+
+			if (a[ny][nx]) cnt++;
+			v[ny][nx] = k;
+			InQueue(ny, nx);
+		}
+	}
+}
+
+void InitBFS(void)
+{
+	int i, j;
+
+	rp = wp = 0;
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			v[i][j] = 0;
+		}
+	}
+}
+
+void InQueue(int y, int x)
+{
+	Q[wp].y = y;
+	Q[wp].x = x;
+	wp++;
+}
+
+POS OutQueue(void)
+{
+	return Q[rp++];
+}
+
+
+
+
+// 아기상어
+// 은애님
+#include <stdio.h>
+#define MAX (20 + 2)
+
+typedef struct st
+{
+	int y;
+	int x;
+}POS;
+
+void SetData(void);
+int Operation(void);
+int BFS(void);
+void Check(int rec);
+void InitV(void);
+void InQueue(int y, int x);
+POS OutQueue(void);
+
+int N;
+int a[MAX][MAX];
+int v[MAX][MAX];
+POS Q[MAX * MAX];
+int fish[7];
+POS shark;
+int size = 2;
+int rp, wp;
+
+int main(void)
+{
+	SetData();
+	printf("%d\n", Operation());
+
+	return 0;
+}
+
+void SetData(void)
+{
+	int i, j;
+
+	scanf("%d", &N);
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%d", &a[i][j]);
+
+			if (!a[i][j]) continue;
+
+			if (a[i][j] <= 6) fish[a[i][j]]++;
+			else
+			{
+				a[i][j] = 0;
+				shark.y = i; shark.x = j;
+			}
+		}
+	}
+}
+
+int Operation(void)
+{
+	int eatable = fish[1], time = 0, exp = 0;
+	int t;
+
+	while (eatable)
+	{
+		InitV();
+
+		t = BFS();
+		if (t) time += t;
+		else return time; // 먹을 생선은 있으나 갈 길이 없는 경우를 고려하지 못했음 ㅜ
+		eatable--;
+		exp++;
+
+		if (exp == size && size <= 6)
+		{
+			exp = 0;
+			eatable += fish[size];
+			size++;
+		}
+	}
+
+	return time;
+}
+
+int BFS(void)
+{
+	int i, ny, nx;
+	int dy[] = { -1, 0, 0, +1 }; // 상좌우하
+	int dx[] = { 0, -1, +1, 0 };
+	int rec = -1;
+	POS out;
+
+	v[shark.y][shark.x] = 1;
+	InQueue(shark.y, shark.x);
+
+	while (wp > rp)
+	{
+		out = OutQueue();
+
+		if (v[out.y][out.x] == rec) // 해당 시간이 다 돌았음
+		{
+			Check(rec); // 누구 먹을지 결정
+			return v[out.y][out.x] - 1;
+		}
+
+		for (i = 0; i < 4; i++)
+		{
+			ny = out.y + dy[i]; nx = out.x + dx[i];
+			if (ny < 1 || ny > N || nx < 1 || nx > N) continue;
+			if (v[ny][nx] || (a[ny][nx] > size)) continue;
+
+			v[ny][nx] = v[out.y][out.x] + 1;
+			InQueue(ny, nx);
+
+			if (a[ny][nx] && (a[ny][nx] < size)) rec = v[ny][nx]; // 최단시간 결정
+		}
+	}
+
+	return 0;
+}
+
+void Check(int rec)
+{
+	int i, j;
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			if (v[i][j] == rec && a[i][j] && (a[i][j] < size))
+			{
+				shark.y = i; shark.x = j;
+				a[i][j] = 0;
+				return;
+			}
+		}
+	}
+}
+
+void InitV(void)
+{
+	int i, j;
+
+	wp = rp = 0;
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			v[i][j] = 0;
+		}
+	}
+}
+
+void InQueue(int y, int x)
+{
+	Q[wp].y = y;
+	Q[wp].x = x;
+	wp++;
+}
+
+POS OutQueue(void)
+{
+	return Q[rp++];
+}
+
+
+
+// 내 아기상어
+#include <stdio.h>
+#define MAX	(25)
+#define INF     (987654321)
+
+typedef struct
+{
+	int y, x;
+	int size;
+}SK;
+SK Shark;
+
+typedef struct
+{
+	int y, x;
+}QUEUE;
+QUEUE Q[MAX * MAX * 2];
+
+void Input(void);
+void InQ(int yy, int xx);
+QUEUE * OutQ(void);
+void Operation(void);
+int BFS(int sy, int sx);
+void Init_Visit_BFS(void);
+void Print(void);
+
+int N;
+int Ocean[MAX][MAX];
+int time;
+int Visit[MAX][MAX];
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int eat;
+int Wp, Rp;
+int min_y, min_x, min_time;
+
+int main(void)
+{
+	Input();
+	Operation();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j, tmp;
+
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%d", &tmp);
+			Ocean[i][j] = tmp;
+			if (tmp == 9)
+			{
+				Ocean[i][j] = 0;
+				Shark.y = i;    Shark.x = j;
+				Shark.size = 2;
+			}
+		}
+	}
+}
+
+void InQ(int yy, int xx)
+{
+	Q[Wp].y = yy;
+	Q[Wp++].x = xx;
+}
+
+QUEUE * OutQ(void)
+{
+	return (&Q[Rp++]);
+}
+
+void Operation(void)
+{
+	int eat_fish;
+
+	eat = 0;
+	time = 0;
+	while( 1 )
+	{
+		Init_Visit_BFS();
+		eat_fish = BFS(Shark.y, Shark.x);
+		if(eat_fish == INF) break;
+		Ocean[min_y][min_x] = 0;
+		Shark.y = min_y;        Shark.x = min_x;
+		time += eat_fish;
+		if(++eat == Shark.size)
+		{
+			Shark.size++;
+			eat = 0;
+		}
+	}
+}
+
+int BFS(int sy, int sx)
+{
+	QUEUE * out = (QUEUE *)0x0;
+	int i;
+	int ny, nx;
+	int flag = 0;
+
+	Wp = Rp = 0;
+	InQ(sy, sx);
+	Visit[sy][sx] = 0;
+
+	while( Wp > Rp )
+	{
+		out = OutQ();
+		sy = out->y;
+		sx = out->x;
+		for(i = 0; i < 4; i++)
+		{
+			ny = sy + dy[i];
+			nx = sx + dx[i];
+			if( ny < 1 || ny > N || nx < 1 || nx > N ) continue;      // N*N 공간 넘어가면 안됨
+			if( Ocean[ny][nx] > Shark.size || Visit[ny][nx] != -1 ) continue; // 물고기 크기가 아기상어보다 크면 못 지나감
+			// 그럼 일단 지나갈 수 있음
+			Visit[ny][nx] = Visit[sy][sx] + 1;
+			InQ(ny, nx);    // 크기가 같아도 지나갈 수는 있음!
+			if( Ocean[ny][nx] != 0 && Ocean[ny][nx] < Shark.size )     // 아기상어가 먹을 수 있는 물고기다?
+			{
+				// ★★ 세부적인 조건 설계 단에서 꼭 구체적으로 다 만들어서 문제 진입하자!! ★★
+				if( min_time > Visit[ny][nx] )    // 1) 일단 이동 거리(시간) 최소를 구함
+				{
+					min_y = ny;
+					min_x = nx;
+					min_time = Visit[ny][nx];
+				}
+				else if( min_time == Visit[ny][nx] )      // 거리(시간)이 같을 경우 위치 측정
+				{
+					if( min_y > ny )        // 2) 가장 위쪽?
+					{
+						min_y = ny;
+						min_x = nx;
+					}
+					else if ( min_y == ny )  // 30 그것도 아니라면 가장 왼쪽?
+					{
+						if( min_x > nx ) min_x = nx;
+					}
+				}
+			}
+		}
+	}
+
+	return min_time;
+}
+
+void Init_Visit_BFS(void)
+{
+	int i, j;
+
+	min_y = min_x = min_time = INF;
+	for(i = 1; i <= N; i++)
+	{
+		for(j = 1; j <= N; j++)
+		{
+			Visit[i][j] = -1;
+		}
+	}
+}
+
+void Print(void)
+{
+	printf("%d\n", time);
+}
