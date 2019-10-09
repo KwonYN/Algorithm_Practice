@@ -1,0 +1,147 @@
+// 20191009
+// [BOJ. 17143] 낚시왕
+#if 0
+#include <stdio.h>
+#define MAX     (110)
+#define INF     (987654321)
+
+typedef struct
+{
+        int y, x;
+        int spd;
+        int dir;
+        int size;
+}SHARK;
+SHARK Shark[MAX * MAX];
+
+void Input(void);
+void Operation(void);
+void Move_Eat_Shark(void);
+void Print(void);
+void Draw_Map(void);
+
+int R, C, M;
+int Map[MAX][MAX];
+int dy[5] = {0, -1, 1, 0, 0};
+int dx[5] = {0, 0, 0, 1, -1};
+int dd[5] = {0, 2, 1, 4, 3};
+int size_sum;
+
+int main(void)
+{
+        Input();
+        Operation();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i;
+        int yy, xx, s, d, z;
+
+        scanf("%d %d %d", &R, &C, &M);
+        for(i = 1; i <= M; i++)
+        {
+                scanf("%d %d %d %d %d", &yy, &xx, &s, &d, &z);
+                Shark[i].y = yy;        Shark[i].x = xx;
+                Shark[i].spd = s;       Shark[i].dir = d;       Shark[i].size = z;
+                Map[yy][xx] = i;
+        }
+}
+
+void Operation(void)
+{
+        int Fisher, i, min_y, die_idx;
+
+        size_sum = 0;
+        for(Fisher = 1; Fisher <= C + 1; Fisher++)      // 1) 낚시왕의 이동
+        {
+                min_y = INF;    die_idx = 0;
+                for(i = 1; i <= M; i++)                 // 2) 상어 잡이
+                {
+                        if( Shark[i].size <= 0 ) continue;
+                        if( Shark[i].x == Fisher )
+                        {
+                                if( min_y > Shark[i].y )
+                                {
+                                        min_y = Shark[i].y;
+                                        die_idx = i;
+                                }
+                        }
+                }
+                size_sum += Shark[die_idx].size;
+                Map[ Shark[die_idx].y] [ Shark[die_idx].x ] = 0;
+                Shark[die_idx].size = 0;
+
+                Move_Eat_Shark();                       // 3) 상어의 이동과 사냥
+
+                //Draw_Map();
+        }
+}
+
+void Move_Eat_Shark(void)
+{
+        int i, j, dist, dir;
+        int sy, sx;
+
+        for(i = 1; i <= M; i++) // 3-1) 상어의 이동
+        {
+                if( Shark[i].size <= 0 ) continue;
+                sy = Shark[i].y;        sx = Shark[i].x;
+                Map[sy][sx] = 0;
+                dir = Shark[i].dir;
+
+                // ★ 만약 dist(가야할 거리)가 1000으로 주어진다면? for문으로 다 돌면 너무 비효율적.. ★
+                // 그렇기 때문에 다시 처음 상태로 돌아올 때까지의 거리를 구해주고, 그것으로 주어진 가야할 거리를 Mod 해줌!
+                // 그럼 최대 가는 거리가 확 줄어듦!
+                if(dir <= 2) dist = Shark[i].spd % (2 * (R - 1));       // 상하로 왔다갔다
+                else dist = Shark[i].spd % (2 * (C - 1));               // 좌우로 왔다갔다
+
+                for(j = 1; j <= dist ; j++)
+                {
+                        if( sy + dy[dir] < 1 || sy + dy[dir] > R || sx + dx[dir] < 1 || sx + dx[dir] > C )
+                        {
+                                dir = dd[dir];
+                        }
+                        sy += dy[dir];         sx += dx[dir];
+                }
+                Shark[i].y = sy;        Shark[i].x = sx;
+                Shark[i].dir = dir;
+        }
+
+        for(i = 1; i <= M; i++) // 3-2) 상어가 상어 먹음
+        {
+                if( Shark[i].size <= 0 ) continue;
+                sy = Shark[i].y;        sx = Shark[i].x;
+                if( Map[sy][sx] )
+                {
+                        if( Shark[i].size > Shark[ Map[sy][sx] ].size )
+                        {
+                                Shark[ Map[sy][sx] ].size = 0;
+                                Map[sy][sx] = i;
+                        }
+                        else Shark[i].size = 0;
+                }
+                else Map[ sy ][ sx ] = i;
+        }
+}
+
+void Print(void) { printf("%d\n", size_sum); }
+
+void Draw_Map(void)
+{
+        int i, j;
+
+        for(i = 1; i <= R; i++)
+        {
+                for(j = 1; j <= C; j++)
+                {
+                        printf("%2d ", Map[i][j]);
+                }
+                printf("\n");
+        }
+        printf("\n\n");
+}
+#endif
