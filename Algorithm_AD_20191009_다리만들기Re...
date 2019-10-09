@@ -1,0 +1,188 @@
+
+// 20191009
+// [BOJ. 2146] 다리 만들기
+#if 01
+#include <stdio.h>
+#define MAX     (110)
+#define INF     (987654321)
+
+typedef struct
+{
+        int y, x;
+}NODE;
+NODE Q[MAX * MAX * 2];
+
+void Input(void);
+void Operation(void);
+void BFS_Island(int sy, int sx, int num);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+void Init_Visit(void);
+void Operation2(void);
+int FF_BFS_Bridge(int comp);
+void Print(void);
+void Print_Visit(void);
+
+int N;
+int Map[MAX][MAX];
+int Island[MAX][MAX];
+int island_cnt;
+int Visit[MAX][MAX];
+int dy[4] = {-1, 1, 0, 0};
+int dx[4] = {0, 0, -1, 1};
+int min_Bridge;
+int Wp, Rp;
+
+int main(void)
+{
+        Input();
+        Operation();
+        Operation2();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        scanf("%d", &N);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        scanf("%d", &Map[i][j]);
+                }
+        }
+}
+
+void Init_Visit(void)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++) for(j = 1; j <= N; j++) Visit[i][j] = INF;
+}
+
+void Operation(void)
+{
+        int i, j;
+
+        island_cnt = 1;
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        if( Map[i][j] && !Island[i][j])
+                        {
+                                BFS_Island(i, j, island_cnt);
+                                island_cnt++;
+                        }
+                }
+        }
+}
+
+void BFS_Island(int sy, int sx, int num)
+{
+        NODE * out = (NODE *)0x0;
+        int i;
+        int ny, nx;
+
+        Wp = Rp = 0;
+        Island[sy][sx] = num;
+        InQ(sy, sx);
+        while( Wp > Rp )
+        {
+                out = OutQ();
+                sy = out->y;    sx = out->x;
+                for(i = 0; i < 4; i++)
+                {
+                        ny = sy + dy[i];        nx = sx + dx[i];
+                        if( ny < 1 || ny > N || nx < 1 || nx > N ) continue;
+                        if( Map[ny][nx] && !Island[ny][nx] )
+                        {
+                                Island[ny][nx] = num;
+                                InQ(ny, nx);
+                        }
+                }
+        }
+}
+
+void InQ(int yy, int xx)
+{
+        Q[Wp].y = yy;
+        Q[Wp++].x = xx;
+}
+
+NODE * OutQ(void) { return &(Q[Rp++]); }
+
+void Operation2(void)
+{
+        int i, r;
+
+        min_Bridge = INF;
+        Init_Visit();
+        for(i = 1; i < island_cnt; i++)
+        {
+                r = FF_BFS_Bridge(i);
+                //printf("r = %d,   ", r);
+                if( min_Bridge > r) min_Bridge = r;
+                //rintf("min_Bridge = %d\n", min_Bridge);
+                //Print_Visit();
+        }
+}
+
+int FF_BFS_Bridge(int comp)
+{
+        NODE * out = (NODE *)0x0;
+        int i, j;
+        int sy, sx, ny, nx;
+
+        Wp = Rp = 0;
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        if( Island[i][j] == comp )
+                        {
+                                InQ(i, j);
+                                Visit[i][j] = 0;
+                        }
+                }
+        }
+
+        while( Wp > Rp )
+        {
+                out = OutQ();
+                sy = out->y;    sx = out->x;
+                for(i = 0; i < 4; i++)
+                {
+                        ny = sy + dy[i];        nx = sx + dx[i];
+                        if( ny < 1 || ny > N || nx < 1 || nx > N || Island[ny][nx] == comp ) continue;
+                        if( Island[ny][nx] ) return Visit[sy][sx];
+                        if( !Island[ny][nx]) Visit[ny][nx] = Visit[sy][sx] + 1;
+                        InQ(ny, nx);
+                }
+        }
+
+        return 0;
+}
+
+void Print(void)
+{
+        printf("%d\n", ((min_Bridge == 0) ? -1 : min_Bridge) );
+}
+
+void Print_Visit(void)
+{
+        printf("Print_Visit\n");
+        for(int i = 1; i <= N; i++)
+        {
+                for(int j = 1; j <= N; j++)
+                {
+                        printf("%4d", Visit[i][j]);
+                }
+                printf("\n");
+        }
+}
+#endif
