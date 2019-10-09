@@ -1,0 +1,88 @@
+// 20191009
+// [SWEA. 2117] [모의 SW 역량테스트] 홈 방범 서비스  =>      다시 풀어보기!!
+#if 01
+#include <stdio.h>
+#define MAX     (25)
+#define COST(k) ( (k) * (k) + ((k) - 1) * ((k) - 1) )
+#define ABS(a)  ( ((a) < 0) ? -(a) : (a) )
+
+typedef struct
+{
+        int y, x;
+}HOUSE;
+HOUSE House[MAX * MAX];
+
+void Input(void);
+void Operation(void);
+
+int T;
+int N, M;
+int City[MAX][MAX];
+int house_cnt;
+int Result_cnt;
+
+int main(void)
+{
+        int t;
+
+        scanf("%d", &T);
+        for(t = 1; t <= T; t++)
+        {
+                Input();
+                Operation();
+                printf("#%d %d\n", t, Result_cnt);
+        }
+
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        house_cnt = 1;
+        scanf("%d %d", &N, &M);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        scanf("%d", &City[i][j]);
+                        if( City[i][j] )
+                        {
+                                House[house_cnt].y = i;
+                                House[house_cnt++].x = j;
+                        }
+                }
+        }
+}
+
+void Operation(void)
+{
+        int i, j, k, h;
+        int cost, cnt;
+
+        Result_cnt = 0;
+        for(k = 1; k <= 2 * N - 1; k++)
+        {
+                cost = COST(k);
+                printf("cost = %d\n", cost);
+                for(i = 1; i <= N; i++)
+                {
+                        for(j = 1; j <= N; j++)
+                        {
+                                cnt = 0;
+                                for(h = 1; h < house_cnt; h++)
+                                {
+                                        if( ABS(House[h].y - i) + ABS(House[h].x - j) > k - 1 ) continue;
+                                        cnt++;
+                                }
+                                if( cnt * M >= cost )
+                                {
+                                        if( Result_cnt < cnt ) Result_cnt = cnt;
+                                }
+                        }
+                }
+        }
+}
+#endif
