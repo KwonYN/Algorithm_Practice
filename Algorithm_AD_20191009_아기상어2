@@ -1,0 +1,177 @@
+// 20191009
+// [BOJ. 17086] 아기 상어 2
+#if 01
+#include <stdio.h>
+#define MAX     (55)
+#define INF     (987654321)
+
+typedef struct
+{
+        int y, x;
+}NODE;
+NODE Shark[MAX * MAX];
+NODE Q[MAX * MAX];
+
+void Input(void);
+void Init_Visit(void);
+void Operation(void);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+void BFS_Get_Distance(int sy, int sx);
+int Get_Safety_Dist(void);
+void Print(void);
+void Print_Map(void);
+void Print_Visit(void);
+
+int N, M;
+int Map[MAX][MAX];
+int Visit[MAX][MAX];
+int dy[8] = {-1, -1, 0, 1, 1, 1, 0, -1};
+int dx[8] = {0, 1, 1, 1, 0, -1, -1, -1};
+int Shark_cnt;
+int Wp, Rp;
+
+int main(void)
+{
+        Input();
+        Init_Visit();
+        Operation();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        Shark_cnt = 1;
+        scanf("%d %d", &N, &M);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        scanf("%d", &Map[i][j]);
+                        if(Map[i][j])
+                        {
+                                Shark[Shark_cnt].y = i;
+                                Shark[Shark_cnt++].x = j;
+                        }
+                }
+        }
+}
+
+void Init_Visit(void)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        Visit[i][j] = INF;
+                }
+        }
+}
+
+void Operation(void)
+{
+        int i;
+        int sy, sx;
+
+        for(i = 1; i < Shark_cnt; i++)
+        {
+                sy = Shark[i].y;        sx = Shark[i].x;
+                BFS_Get_Distance(sy, sx);
+                //Print_Visit();
+        }
+}
+
+void InQ(int yy, int xx)
+{
+        Q[Wp].y = yy;
+        Q[Wp++].x = xx;
+}
+
+NODE * OutQ(void)
+{
+        return &(Q[Rp++]);
+}
+
+void BFS_Get_Distance(int sy, int sx)
+{
+        NODE * out = (NODE *)0x0;
+        int i, ny, nx, check, dist = 0;
+
+        Wp = Rp = 0;
+        InQ(sy, sx);
+        Visit[sy][sx] = 0;
+        while(Wp > Rp)
+        {
+                out = OutQ();
+                sy = out->y;    sx = out->x;
+                for(i = 0; i < 8; i++)
+                {
+                        ny = sy + dy[i];        nx = sx + dx[i];
+                        if(ny < 1 || ny > N || nx < 1 || nx > M) continue;
+                        check = Visit[sy][sx] + 1;
+                        if( !Map[ny][nx] && Visit[ny][nx] > check)
+                        {
+                                Visit[ny][nx] = check;
+                                InQ(ny, nx);
+                        }
+                }
+        }
+}
+
+int Get_Safety_Dist(void)
+{
+        int i, j, dist = 0;;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        if(dist < Visit[i][j]) dist = Visit[i][j];
+                }
+        }
+        return dist;
+}
+
+void Print(void)
+{
+        printf("%d\n", Get_Safety_Dist());
+}
+
+void Print_Map(void)
+{
+        int i, j;
+
+        printf("\n");
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        printf("%d ", Map[i][j]);
+                }
+                printf("\n");
+        }
+        printf("\n");
+}
+
+void Print_Visit(void)
+{
+        int i, j;
+
+        printf("\n");
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        printf("%d ", Visit[i][j]);
+                }
+                printf("\n");
+        }
+        printf("\n");
+}
+#endif
