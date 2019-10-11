@@ -1,0 +1,176 @@
+// 20191011
+// [SWEA. 5644] 무선 충전
+#if 0
+#include <stdio.h>
+#define MAX	(110)
+#define AAX	(10)
+#define ABS(a)	( ( (a) < 0 ) ? -(a) : (a) )
+#define DIST(a, b)	( ABS(a) + ABS(b) )
+
+typedef struct
+{
+	int x, y;
+	int dir[MAX];
+	int Charge;
+}PERSON;
+PERSON A, B;
+
+typedef struct
+{
+	int x, y;
+	int Range;
+	int Performance;
+}BC;
+BC bc[AAX];
+
+void Input(void);
+void Move_Get_Sum(void);
+int Get_Chk_Sum(void);
+void Init_chk(void);
+
+int T;
+int M, a;
+int dy[5] = { 0, -1, 0, 1, 0 };
+int dx[5] = { 0, 0, 1, 0, -1 };
+int Max_Sum;
+int chka[9], chkb[9];
+
+int main(void)
+{
+	int t;
+
+	freopen("in.txt", "r", stdin);
+	scanf("%d", &T);
+	for (t = 1; t <= T; t++)
+	{
+		Input();
+		Move_Get_Sum();
+		printf("#%d %d\n", t, Max_Sum);
+	}
+	
+	return 0;
+}
+
+void Input(void)
+{
+	int i;
+
+	A.y = 1;	A.x = 1;	A.dir[0] = 0;
+	B.y = 10;	B.x = 10;	B.dir[0] = 0;
+	scanf("%d %d", &M, &a);
+	for (i = 1; i <= M; i++) { scanf("%d", &A.dir[i]); }
+	for (i = 1; i <= M; i++) { scanf("%d", &B.dir[i]); }
+	for (i = 1; i <= a; i++) { scanf("%d %d %d %d", &bc[i].x, &bc[i].y, &bc[i].Range, &bc[i].Performance); }
+}
+
+void Move_Get_Sum(void)
+{
+	int m, i;
+	int nay, nax, nby, nbx;
+	int adir, bdir;
+	int flag;
+
+	Max_Sum = 0;
+	for (m = 0; m <= M; m++)
+	{
+		nax = A.x;	nay = A.y;	adir = A.dir[m];
+		nbx = B.x;	nby = B.y;	bdir = B.dir[m];
+		//printf("[%d] A : x = %d, y = %d, adir = %d\n", m, nax, nay, adir);
+		//printf("[%d] B : x = %d, y = %d, bdir = %d\n", m, nbx, nby, bdir);
+
+		nax += dx[adir];	nay += dy[adir];
+		nbx += dx[bdir];	nby += dy[bdir];
+
+		flag = 0;
+		for (i = 1; i <= a; i++)
+		{
+			if ( DIST( (bc[i].x - nax), (bc[i].y - nay) ) <= bc[i].Range )
+			{
+				//printf("[%d] DISTa = %d\n", i, DIST((bc[i].x - nax), (bc[i].y - nay)) <= bc[i].Range);
+				chka[i] = 1;
+				flag++;
+			}
+			if ( DIST( (bc[i].x - nbx), (bc[i].y - nby) ) <= bc[i].Range )
+			{
+				//printf("[%d] DISTb = %d\n", i, DIST((bc[i].x - nbx), (bc[i].y - nby)) <= bc[i].Range);
+				chkb[i] = 1;
+				flag++;
+			}
+		}
+		if(flag) Max_Sum += Get_Chk_Sum();
+		//printf("Max_Sum = %d\n", Max_Sum);
+		Init_chk();
+		
+		A.x = nax;	A.y = nay;
+		B.x = nbx;	B.y = nby;
+	}
+}
+/*	변수 굳이 저렇게 많이 사용 안해줘도 됨!
+	void Move_Get_Sum(void)
+	{
+		int m, i;
+		int adir, bdir;
+		int flag;
+
+		Max_Sum = 0;
+		for (m = 0; m <= M; m++)
+		{
+			adir = A.dir[m];    bdir = B.dir[m];
+			A.x += dx[adir];    A.y += dy[adir];
+			B.x += dx[bdir];    B.y += dy[bdir];
+
+			flag = 0;
+			for (i = 1; i <= a; i++)
+			{
+				if ( DIST( (bc[i].x - A.x), (bc[i].y - A.y) ) <= bc[i].Range )
+				{
+				chka[i] = 1;
+				flag++;
+				}
+				if ( DIST( (bc[i].x - B.x), (bc[i].y - B.y) ) <= bc[i].Range )
+				{
+				chkb[i] = 1;
+				flag++;
+				}
+			}
+			if(flag) Max_Sum += Get_Chk_Sum();
+			Init_chk();
+		}
+	}
+*/
+
+int Get_Chk_Sum(void)
+{
+	int max_sum = 0;
+	int i, j;
+	int sA, sB, check;
+
+	for (i = 1; i <= a; i++)
+	{
+		for (j = 1; j <= a; j++)
+		{
+			sA = sB = 0;
+			if ( chka[i] ) sA = bc[i].Performance;
+			if ( chkb[j] ) sB = bc[j].Performance;
+			if ( i == j && chka[i] == 1 && chkb[j] == 1 )
+			{
+				sA /= 2;		sB /= 2;
+			}
+			check = sA + sB;
+			if ( max_sum < check ) max_sum = check;
+		}
+	}
+
+	return max_sum;
+}
+
+void Init_chk(void)
+{
+	int i;
+
+	for (i = 1; i <= a; i++)
+	{
+		chka[i] = chkb[i] = 0;
+	}
+}
+#endif
