@@ -1,0 +1,160 @@
+// 20191011
+// [BOJ. 14502] 연구소
+#if 0
+#include <stdio.h>
+#define MAX	(10)
+
+typedef struct
+{
+	int y, x;
+}NODE;
+NODE Virus[11];
+NODE Que[MAX * MAX * 2];
+
+void Input(void);
+void DFS_Choose_Wall(int L);
+void InQ(int yy, int xx);
+NODE * outQ(void);
+int BFS_Get_Safety_Area(void);
+void Print(void);
+void Print_Lab(void);
+
+int N, M;
+int Lab[MAX][MAX];
+int Virus_cnt;
+int chk_0;
+int max_area;
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int Wp, Rp;
+int lcnt;
+
+int main(void)
+{
+	freopen("in.txt", "r", stdin);
+
+	Input();
+	DFS_Choose_Wall(1);
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	max_area = 0;
+	chk_0 = 0;		Virus_cnt = 1;
+	scanf("%d %d", &N, &M);
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= M; j++)
+		{
+			scanf("%d", &Lab[i][j]);
+			if ( Lab[i][j] == 2 )			// 바이러스의 위치 저장
+			{
+				Virus[Virus_cnt].y = i;
+				Virus[Virus_cnt++].x = j;
+			}
+			else if ( !Lab[i][j] ) chk_0++;	// 빈 칸의 개수 저장
+		}
+	}
+
+	//for (i = 1; i < Virus_cnt; i++) printf("Virus_y = %d, Virus_x = %d\n", Virus[i].y, Virus[i].x);
+	//printf("\n");
+}
+
+void DFS_Choose_Wall(int L)
+{
+	int i, j, r = -1;
+
+	if ( r == chk_0 ) return;
+	if (L > 3)
+	{
+		//Print_Lab();
+		r = BFS_Get_Safety_Area();
+		//printf("r = %d\n", r);
+		if (max_area < r) max_area = r;
+		return;
+	}
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= M; j++)
+		{
+			if ( !Lab[i][j] )	// 벽일 때 이것 선택해줌!
+			{
+
+				Lab[i][j] = 1;		chk_0--;
+				DFS_Choose_Wall(L + 1);
+				Lab[i][j] = 0;		chk_0++;
+			}
+		}
+	}
+}
+
+void InQ(int yy, int xx)
+{
+	Que[Wp].y = yy;
+	Que[Wp++].x = xx;
+}
+
+NODE * outQ(void)
+{
+	return &(Que[Rp++]);
+}
+
+int BFS_Get_Safety_Area(void)
+{
+	int Visit[MAX][MAX] = { 0 };
+	NODE * out = (NODE *)0x0;
+	int i, sy, sx, ny, nx;
+	int chk = chk_0;
+
+	lcnt++;
+	Wp = Rp = 0;
+	for (i = 1; i < Virus_cnt; i++)
+	{
+		InQ( Virus[i].y, Virus[i].x );
+		Visit[ Virus[i].y ][ Virus[i].x ] = 1;
+	}
+
+	while ( Wp > Rp )
+	{
+		out = outQ();
+		sy = out->y;		sx = out->x;
+		for (i = 0; i < 4; i++)
+		{
+			ny = sy + dy[i];	nx = sx + dx[i];
+			if (ny < 1 || ny > N || nx < 1 || nx > M) continue;
+			if ( !Lab[ny][nx] && !Visit[ny][nx] )	// 연구실이 빈칸이고 아직 방문을 안했을 때
+			{
+				Visit[ny][nx] = 1;
+				InQ(ny, nx);
+				chk--;
+			}
+		}
+	}
+	return chk;
+}
+
+void Print(void)
+{
+	printf("%d\n", max_area);
+}
+
+void Print_Lab(void)
+{
+	printf("Print_Lab\n");
+	for (int i = 1; i <= N; i++)
+	{
+		for (int j = 1; j <= M; j++)
+		{
+			printf("%2d ", Lab[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+#endif
