@@ -1,0 +1,166 @@
+// 20191011
+// 인구 이동
+/*
+        ★★ 교훈!! ★★
+        BFS 함수의 인자로 시작 좌표값뿐만 아니라 Visit배열에 넉어줄 값까지 넣어준다면, Visit 배열에 원하는 구역 별로 다른 값을 넘버링할 수 있음.
+        그리고 BFS함수 내에서 Wp = Rp = 0;으로 초기화해주는 경우, Wp가 1에서 끝나게 된다면 더 이상 사방으로 퍼져나갈 수 없었다는 것을 의미.
+*/
+#if 0
+#include <stdio.h>
+#define MAX	(55)
+#define	ABS(a)	( ((a) < 0) ? -(a) : (a) )
+
+typedef struct
+{
+	int y, x;
+}NODE;
+NODE Que[MAX * MAX * 2];        // BFS 돌 때마다 초기화를 해주기 때문에 사실 50*50이면 충분하지만, 넉넉하게 잡아줌!
+
+void Input(void);
+void Operation(void);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+int BFS(int sy, int sx, int comp);
+void Init_Visit(void);
+
+int N, L, R;
+int A[MAX][MAX];
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int Visit[MAX][MAX];
+int Wp, Rp;
+int result_cnt;
+
+int main(void)
+{
+	Input();
+	Operation();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	scanf("%d %d %d", &N, &L, &R);
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%d", &A[i][j]);
+		}
+	}
+}
+
+void Operation(void)
+{
+	int flag, i, j, r, cnt;
+
+	result_cnt = 0;
+	for( ; ; )
+	{
+		cnt = 1;	flag = 1;
+		Init_Visit();
+		for (i = 1; i <= N; i++)
+		{
+			for (j = 1; j <= N; j++)
+			{
+				if ( !Visit[i][j] )
+				{
+					r = BFS(i, j, cnt);     // BFS함수 내에서는 사방체크로 퍼져나가면서 Visit 그 좌표에 cnt값을 넣어줌. 합칠 수 있는 구역을 구분해주기 위함!
+					cnt++;
+					if (r != 1) flag = 0;
+				}
+			}
+		}
+		/*
+                        BFS의 리턴 값은 Wp인데, 그 값이 1이라는 것은 한 번만 큐에 들어갔다가 사방으로 갈 곳이 없어서 바로 리턴됐다는 것.
+                        그런 상황이 한 번이라도 발생하지 않는다면, flag가 0으로 바뀌기 때문에 이 조건에 들어가지 않음.
+                        하지만 BFS 함수로 들어간 모든 경우에서 Wp = 1로 끝나게 된다면, 더 이상 국경선을 열 수 없는 상황이므로 더 이상 인구 이동이 발생하지 않는 상황이 됨!
+                        그런 경우에는 그 때까지 인구이동을 했던 횟수를 프린트하고 바로 끝!
+		*/
+		if ( flag )
+		{
+			printf("%d\n", result_cnt);
+			return;
+		}
+		result_cnt++;   // 처음에 이 위치를 바로 위의 if조건 바로 위에 두었음. 그래서 항상 정답 + 1이 출력됐었음.
+                                // 탈출 조건의 위치와 결과값을 갱신해줄 위치를 잘 보아야 함!
+	}
+}
+
+void InQ(int yy, int xx)
+{
+	Que[Wp].y = yy;
+	Que[Wp++].x = xx;
+}
+
+NODE * OutQ(void)
+{
+	return &(Que[Rp++]);
+}
+
+int BFS(int sy, int sx, int comp)
+{
+	NODE * out = (NODE *)0x0;
+	int i, j, check;
+	int ny, nx, sum, cnt;
+
+	Wp = Rp = 0;
+	InQ(sy, sx);
+	Visit[sy][sx] = comp;
+	sum = A[sy][sx];	cnt = 1;
+	while (Wp > Rp)
+	{
+		out = OutQ();
+		sy = out->y;	sx = out->x;
+		for (i = 0; i < 4; i++)
+		{
+			ny = sy + dy[i];	nx = sx + dx[i];
+			if ( ny < 1 || ny > N || nx < 1 || nx > N ) continue;
+			check = ABS( A[sy][sx] - A[ny][nx] );
+			// 인접한 구역의 인구 수와의 차이가 L보다 크거나 같고, R보다 작거나 같으면서, 방문하지 않은 구역이라면 InQ와 Visit갱신, 그리고 그 곳의 인구수까지 합해주고, cnt를 1 증가시킴
+			if ( check >= L && check <= R  && !Visit[ny][nx] )
+			{
+				InQ(ny, nx);
+				Visit[ny][nx] = comp;
+				sum += A[ny][nx];	cnt++;
+			}
+		}
+	}
+
+	/*
+                혹시 처음에 Q에 들어갔다가 나왔는데 사방으로 이동하는 경우가 없고 바로 BFS가 긑나게 된다면,
+                인구를 이동시킬 수 없기 때문에 바로 Wp = 1로 리턴시켜주기 위해 이 계산 부분을 통과시켜주기 위함
+	*/
+	if (Wp != 1)
+	{
+		for (i = 1; i <= N; i++)
+		{
+			for (j = 1; j <= N; j++)
+			{
+				if (Visit[i][j] == comp)
+				{
+					A[i][j] = sum / cnt;
+				}
+			}
+		}
+	}
+
+	return Wp;
+}
+
+void Init_Visit(void)
+{
+	int i, j;
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			Visit[i][j] = 0;
+		}
+	}
+}
+#endif
