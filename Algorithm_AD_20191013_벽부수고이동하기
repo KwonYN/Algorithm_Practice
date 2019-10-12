@@ -56,13 +56,11 @@ int BFS(void)
 {
         NODE * out = (NODE *)0x0;
         int i;
-        int sy, sx, ny, nx, d;
+        int sy, sx, ny, nx, d, check;
 
         Wp = Rp = 0;
-        InQ(1, 1, 0);	// 벽을 한 번이라도 부수려면 처음에 안 부셨다고 체크를 해야겠지?
-        Visit[1][1][0] = 1;
-        InQ(1, 1, 1);	// 벽을 한 번도 안 부수고 이동할 수 있나? 안 부셨지만, 부셔봤다고 체크 해보자!
-        Visit[1][1][1] = 1;
+        InQ(1, 1, 0);        Visit[1][1][0] = 1;	// 벽을 한 번이라도 부수려면 처음에 안 부셨다고 체크를 해야겠지?
+        InQ(1, 1, 1);        Visit[1][1][1] = 1;	// 벽을 한 번도 안 부수고 이동할 수 있나? 안 부셨지만, 부셔봤다고 체크 해보자!
         while( Wp != Rp )
         {
                 out = OutQ();
@@ -76,12 +74,16 @@ int BFS(void)
                         Visit[ny][nx][d] = 1;
                         if( !Map[ny][nx] ) // 벽이 아니라면
                         {
+                                check = Visit[sy][sx][d] + 1;
+                                if( Visit[ny][nx][d] >= check ) continue;
                                 //printf("[%d]벽 아님 : ny = %d, nx = %d\n", i, ny, nx);
-                                Visit[ny][nx][d] = Visit[sy][sx][d] + 1;
+                                Visit[ny][nx][d] = check;
                                 InQ(ny, nx, d);
                         }
                         else if( Map[ny][nx] && d == 0 ) // 벽인데 아직 안 부셨다면, 부셔봐! (벽인데 이미 부셨다면 그냥 돌아가!)
                         {
+                                check = Visit[sy][sx][d] + 1;
+                                if( Visit[ny][nx][d] >= check ) continue;
                                 //printf("[%d]벽임 : ny = %d, nx = %d\n", i, ny, nx);
                                 Visit[ny][nx][1] = Visit[sy][sx][d] + 1;
                                 InQ(ny, nx, 1);
