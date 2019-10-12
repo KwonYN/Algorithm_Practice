@@ -1,0 +1,439 @@
+// 20191012
+// [BOJ. 2206] 벽 부수고 이동하기
+#if 01
+#include <stdio.h>
+#define MAX     (1010)
+#define INF     (987654321)
+#define MAXQ    (MAX * MAX)
+
+typedef struct
+{
+        int y, x;
+        int destroy_flag;
+}NODE;
+NODE Que[MAXQ];
+
+void Input(void);
+void Operation(void);
+int BFS(void);
+void InQ(int yy, int xx, int dd);
+NODE * OutQ(void);
+void Print(void);
+
+int N, M;
+int Map[MAX][MAX];
+int Visit[MAX][MAX][2];
+int Wp, Rp;
+int dy[4] = {-1, 1, 0, 0};
+int dx[4] = {0, 0, -1, 1};
+int min_dist;
+int cnt;
+
+int main(void)
+{
+        Input();
+        min_dist = BFS();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        scanf("%d %d", &N, &M);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        scanf("%1d", &Map[i][j]);
+                }
+        }
+}
+
+int BFS(void)
+{
+        NODE * out = (NODE *)0x0;
+        int i;
+        int sy, sx, ny, nx, d;
+
+        Wp = Rp = 0;
+        InQ(1, 1, 0);
+        Visit[1][1][0] = 1;
+        InQ(1, 1, 1);
+        Visit[1][1][1] = 1;
+        while( Wp != Rp )
+        {
+                out = OutQ();
+                sy = out->y;    sx = out->x;    d = out->destroy_flag;
+                //printf("sy = %d, sx = %d, d = %d\n", sy, sx, d);
+                if( sy == N && sx == M ) return Visit[sy][sx][d];
+                for(i = 0; i < 4; i++)
+                {
+                        ny = sy + dy[i];        nx = sx +  dx[i];
+                        if( ny < 1 || ny > N || nx < 1 || nx > M || Visit[ny][nx][d] ) continue; // Map에서 벗어났거나, ★이미 방문했으면★ continue
+                        Visit[ny][nx][d] = 1;
+                        if( !Map[ny][nx] ) // 벽이 아니라면
+                        {
+                                //printf("[%d]벽 아님 : ny = %d, nx = %d\n", i, ny, nx);
+                                Visit[ny][nx][d] = Visit[sy][sx][d] + 1;
+                                InQ(ny, nx, d);
+                        }
+                        else if( Map[ny][nx] && d == 0 ) // 벽인데 아직 안 부셨다면, 부셔봐! (벽인데 이미 부셨다면 그냥 돌아가!)
+                        {
+                                //printf("[%d]벽임 : ny = %d, nx = %d\n", i, ny, nx);
+                                Visit[ny][nx][1] = Visit[sy][sx][d] + 1;
+                                InQ(ny, nx, 1);
+                        }
+                }
+        }
+
+        return INF;
+}
+
+void InQ(int yy, int xx, int dd)
+{
+        Que[Wp].y = yy;
+        Que[Wp].x = xx;
+        Que[Wp].destroy_flag = dd;
+        if(++Wp >= MAXQ) Wp -= MAXQ;
+}
+
+NODE * OutQ(void)
+{
+        if(Rp >= MAXQ) Rp -= MAXQ;
+        return &(Que[Rp++]);
+}
+
+void Print(void)
+{
+        if( min_dist == INF ) min_dist = -1;
+        printf("%d\n", min_dist);
+}
+#endif
+
+// 원래 내 ver. - 시간 초과 ;; 모든 벽에 대해서 한 번씩 부신다는 반복문과 Visit 배열 초기화 반복문 때문에 Loop가 비약적으로 증가..!
+#if 0
+#include <stdio.h>
+#define MAX     (1010)
+#define INF     (987654321)
+
+typedef struct
+{
+        int y, x;
+}NODE;
+NODE Wall[MAX * MAX];
+NODE Que[MAX * MAX];
+
+void Input(void);
+void Operation(void);
+int BFS(int num);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+void Print(void);
+
+int N, M;
+int Map[MAX][MAX];
+int Visit[MAX][MAX];
+int Wp, Rp;
+int dy[4] = {-1, 1, 0, 0};
+int dx[4] = {0, 0, -1, 1};
+int min_dist;
+int cnt;
+
+int main(void)
+{
+        Input();
+        Operation();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        cnt = 1;
+        Wall[0].y = 0;  Wall[0].x = 0;       // 벽을 하나도 안 부수기 위해서!
+        scanf("%d %d", &N, &M);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        scanf("%1d", &Map[i][j]);
+                        if(Map[i][j] == 1)      // 벽 하나씩 부셔서 가보고.... 반복...
+                        {
+                                Wall[cnt].y = i;
+                                Wall[cnt++].x = j;
+                        }
+                }
+        }
+}
+
+void Operation(void)
+{
+        int i, y, x, r;
+
+        min_dist = INF;
+        for(i = 0; i < cnt; i++)
+        {
+                y = Wall[i].y;  x = Wall[i].x;
+                Map[y][x] = 0;
+                r = BFS(i);
+                if(min_dist > r) min_dist = r;
+                Map[y][x] = 1;
+        }
+}
+
+int BFS(int num)
+{
+        NODE * out = (NODE *)0x0;
+        int i;
+        int sy, sx, ny, nx, mean0 = 500000 * num;
+
+        Wp = Rp = 0;
+        InQ(1, 1);
+        Visit[1][1] = mean0 + 1;
+        while( Wp > Rp )
+        {
+                out = OutQ();
+                sy = out->y;    sx = out->x;
+                for(i = 0; i < 4; i++)
+                {
+                        ny = sy + dy[i];        nx = sx +dx[i];
+                        if(ny < 1 || ny > N || nx < 1 || nx > M) continue;
+                        if( Visit[ny][nx] < mean0 && !Map[ny][nx] )
+                        {
+                                Visit[ny][nx] = Visit[sy][sx] + 1;
+                                if( ny == N && nx == M ) return Visit[ny][nx] - mean0;
+                                InQ(ny, nx);
+                        }
+                }
+        }
+
+        return INF;
+}
+
+void InQ(int yy, int xx)
+{
+        Que[Wp].y = yy;
+        Que[Wp++].x = xx;
+}
+
+NODE * OutQ(void) { return &(Que[Rp++]); }
+
+void Print(void)
+{
+        if( min_dist == INF ) min_dist = -1;
+        printf("%d\n", min_dist);
+}
+#endif
+
+
+
+
+// ★광은님 ver. ★
+#if 0
+#include <stdio.h>
+
+#define MAX (1010)
+#define ABS(n) (((n) > 0) ? (n) : -(n))
+
+typedef struct {
+	int r;
+	int c;
+} POS;
+
+int R, C;
+int wp, rp;
+int Map[MAX][MAX];
+int visit[MAX][MAX];
+POS Queue[MAX * MAX];
+
+int dr[] = { -1, 1, 0, 0 };
+int dc[] = { 0, 0, -1, 1 };
+
+void Input(void);
+int BFS(void);
+
+void InQueue(int r, int c)
+{
+	Queue[wp].r = r;
+	Queue[wp].c = c;
+	if (++wp >= MAX * MAX) wp -= MAX * MAX;
+}
+
+POS OutQueue(void)
+{
+	if (rp >= MAX * MAX) rp -= MAX * MAX;
+	return Queue[rp++];
+}
+
+int main(void)
+{
+	Input();
+	printf("%d\n", BFS());
+
+	return 0;
+}
+
+void Input(void)
+{
+	int r, c;
+	char tmp[MAX];
+
+	scanf("%d %d", &R, &C);
+
+	for (r = 1; r <= R; r++)
+	{
+		scanf("%s", tmp + 1);
+		for (c = 1; c <= C; c++)
+		{
+			Map[r][c] = tmp[c] - '0';
+		}
+	}
+}
+
+int BFS(void)
+{
+	POS out;
+	int nr, nc;
+	int i;
+
+	wp = rp = 0;
+	InQueue(1, 1);
+	visit[1][1] = 1;
+
+	while (rp != wp)
+	{
+		out = OutQueue();
+		//printf("out %d %d\n", out.r, out.c);
+		//printf("visit %d\n", visit[out.r][out.c]);
+		if (out.r == R && out.c == C) return ABS(visit[out.r][out.c]);
+		for (i = 0; i < 4; i++)
+		{
+			nr = out.r + dr[i];
+			nc = out.c + dc[i];
+			if (nr < 1 || nr > R || nc < 1 || nc > C) continue;
+			// 벽을 한 번 부순 경우
+			if (visit[out.r][out.c] < 0)
+			{
+				if (Map[nr][nc] == 1) continue;
+				if (visit[nr][nc] == 0)
+				{
+					visit[nr][nc] = visit[out.r][out.c] - 1;
+					InQueue(nr, nc);
+				}
+			}
+			// 아직 안 부순 경우
+			else
+			{
+				if (visit[nr][nc] > 0) continue;
+				if (Map[nr][nc] == 0)
+				{
+					visit[nr][nc] = visit[out.r][out.c] + 1;
+					InQueue(nr, nc);
+				}
+				else
+				{
+					visit[nr][nc] = (visit[out.r][out.c] * (-1)) - 1;
+					InQueue(nr, nc);
+				}
+			}
+		}
+	}
+
+	return -1;
+}
+#endif
+
+
+
+// ★ 윤규형 ver. - 다시 이해해보기! ★
+#if 0
+#include <stdio.h>
+
+#define INF 1987654321
+#define BOMB (1 << 26)
+#define MASK 0xffffff
+#define QMAX (1 << 12)
+
+typedef struct _point
+{
+	int y, x;
+} P;
+
+int dy[] = {1, 0, -1, 0};
+int dx[] = {0, 1, 0, -1};
+
+int N, M, K;
+char a[1002][1003];
+int v[1002][1002];
+int maxv, head, tail;
+P Q[QMAX];
+
+
+void input(void)
+{
+	int i, j;
+	
+	scanf("%d %d", &N, &M);
+	K = 1;
+	maxv = BOMB * K;
+	for (i = 1; i <= N; ++i)
+	{
+		scanf("%s", a[i] + 1);
+		for (j = 1; j <= M; ++j)
+		{
+			v[i][j] = INF;
+		}
+	}
+}
+
+void bfs(void)
+{
+	int k, tmp;
+	P c = {1, 1}, n;
+	
+	v[1][1] = 1;
+	Q[tail++] = c;
+	while (head != tail)
+	{
+		c = Q[head++];
+		if (head >= QMAX) head &= QMAX - 1;
+		
+		for (k = 0; k < 4; ++k)
+		{
+			n.y = c.y + dy[k];
+			n.x = c.x + dx[k];
+			tmp = v[c.y][c.x] + 1;
+			
+			if (a[n.y][n.x] & 1)
+			{
+				if (tmp < maxv) tmp += BOMB;
+				else continue;
+			}
+			if (tmp >= v[n.y][n.x]) continue;
+			
+			if ((tmp & MASK) != (v[n.y][n.x] & MASK) )
+			{
+				Q[tail++] = n;
+				if (tail >= QMAX) tail &= QMAX - 1;
+			}
+			v[n.y][n.x] = tmp;
+			if (n.y == N && n.x == M) return;
+		}
+	}
+}
+
+int main(void)
+{
+	input();
+	bfs();
+	printf("%d\n", v[N][M] == INF ? -1 : v[N][M] & MASK);
+
+	return 0;
+}
+#endif
