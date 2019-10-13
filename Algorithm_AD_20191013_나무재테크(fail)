@@ -1,0 +1,316 @@
+// 20191013
+// [BOJ. 16235] 나무 재테크
+// 다시 풀어본 버젼 왜..?
+#if 01
+#include <stdio.h>
+#define MAX     (12)
+
+typedef struct
+{
+        int age[4010];
+        int Wp, sub_Wp;
+        int Rp;
+}TREE;
+TREE tree[MAX][MAX];
+
+typedef struct
+{
+        int now, dead;
+}NUTRITION;
+NUTRITION A[MAX][MAX];
+
+void Input(void);
+void Print_Nutrition(void);
+void Four_Season(void);
+void Print(void);
+void Print_Age(void);
+
+int N, M, K;
+int Y[MAX][MAX];
+int dy[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
+int dx[8] = {-1, 0, 1, 1, 1, 0, -1, -1};
+
+int main(void)
+{
+        Input();
+        while(K--)
+        {
+                Print_Nutrition();
+                Four_Season();
+                Print_Nutrition();
+                printf("====================\n");
+        }
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j, x, y, a, end;
+
+        scanf("%d %d %d", &N, &M, &K);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        scanf("%d", &(A[i][j].now));      // 매해 겨울에 더해줄 양분 값
+                        Y[i][j] = 5;    // 초기 양분의
+                }
+        }
+        for(i = 0; i < M; i++)
+        {
+                scanf("%d %d %d", &x, &y, &a);
+                tree[y][x].age[0] = a;  // 초기 각 나무의 위치와 그 나무의 나이
+                tree[y][x].Wp = 1;      tree[y][x].sub_Wp = 1;
+        }
+}
+
+void Print_Nutrition(void)
+{
+        int i, j;
+
+        printf("Print_Nutrition\n");
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        printf("%2d ", Y[i][j]);
+                }
+                printf("\n");
+        }
+}
+
+void Four_Season(void)
+{
+        int i, j, c, d, end;
+        int ny, nx;
+
+        // 디버깅
+        //printf("[before] how many trees? : %d\n", M);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++) // 땅의 좌표 값
+                {
+                        end = tree[i][j].Rp;
+                        // 각 땅에 있는 나무들 순서대로!(나이 내림차순으로 정렬되어 있을 것인데, 거꾸로 빼면 오름차순으로 넣어주는 것!)
+                        for(c = tree[i][j].Wp - 1; c >= tree[i][j].Rp; c--)
+                        {
+                                // [Spring] : Y[i][j]에 있는 양분 빨아들이기 (양분 부족하면 그 나무 즉사)
+                                if( Y[i][j] >= tree[i][j].age[c] )
+                                {
+                                        Y[i][j] -= tree[i][j].age[c];
+                                        // [Autumn] : 봄을 지나면서 죽지 않고 살아 있는 나무에 대해서만! 나이가 5의 배수일 때, 8방 아기 나무 생성
+                                        if( !(++tree[i][j].age[c] % 5) )  // 봄에 양분을 먹고 바로 한 살 증가!
+                                        {
+                                                for(d = 0; d < 8; d++)
+                                                {
+                                                        ny = i + dy[d];         nx = j + dx[d];
+                                                        if( ny < 1 || ny > N || nx < 1 || nx > N ) continue;
+                                                        tree[ny][nx].age[ tree[ny][nx].sub_Wp++ ] = 1;
+                                                        //printf("[birth] y = %d, x = %d, age[%d] = %d <sub_Wp = %d>\n", \
+                                                               ny, nx, tree[ny][nx].sub_Wp-1, tree[ny][nx].age[ tree[ny][nx].sub_Wp-1 ], tree[ny][nx].sub_Wp);
+                                                        M++;
+                                                }
+                                        }
+                                }
+                                else    // [Summer]
+                                {
+                                        A[i][j].dead += (tree[i][j].age[c] / 2);
+                                        end++;                  M--;
+                                        //printf("[death] y = %d, x = %d, age[%d] = %d <Rp = %d>\n", i, j, c, tree[i][j].age[c], end);
+                                }
+                        }
+                        tree[i][j].Rp = end;
+                }
+        }
+       // [Winter]
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        // 현재 살아 있는 나무 갱신
+                        tree[i][j].Wp = tree[i][j].sub_Wp;
+                        // 여긴 겨울
+                        Y[i][j] += ( A[i][j].now + A[i][j].dead );
+                        A[i][j].dead = 0;
+                }
+        }
+        // 디버깅
+        //printf("[after] how many trees? : %d\n", M);
+        Print_Age();
+}
+
+void Print(void)
+{
+        printf("%d\n", M);
+}
+
+void Print_Age(void)
+{
+        int i, j, w;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        printf("Wp = tree[%d][%d].Wp = %d ,  Rp = tree[%d][%d].Rp = %d\n", i, j, tree[i][j].Wp, i, j, tree[i][j].Rp);
+                        for(w = 0; w < tree[i][j].Wp; w++)
+                        {
+                                printf("[ y = %d, x = %d ] age[%d] = %d\n", i, j, w, tree[i][j].age[w]);
+                        }
+                }
+                printf("------------\n");
+        }
+        printf("1 time end\n\n");
+}
+#endif
+
+
+// 시간 초과..
+#if 0
+#include <stdio.h>
+#define MAX     (11)
+
+typedef struct
+{
+        int y, x, age, dead;
+}TREE;
+TREE tree[10000000];
+TREE tmp[MAX * MAX];
+
+typedef struct
+{
+        int now, dead;
+}YANGBUN;
+YANGBUN A[MAX][MAX];
+
+void Input(void);
+void Sort_Tree(int s, int e);
+void Set_Data(void);
+void Four_Season(void);
+void Delete_Dead(void);
+void Print(void);
+
+int N, M, K;
+int Y[MAX][MAX];
+int dy[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
+int dx[8] = {-1, 0, 1, 1, 1, 0, -1, -1};
+int tcnt;
+
+int main(void)
+{
+        Input();
+        Sort_Tree(0, M - 1);
+        Set_Data();
+        while(K--) Four_Season();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        scanf("%d %d %d", &N, &M, &K);
+        for(i = 1; i <= N; i++) for(j = 1; j <= N; j++) scanf("%d", &A[i][j].now);
+        for(i = 0; i < M; i++) scanf("%d %d %d", &tree[i].x, &tree[i].y, &tree[i].age);
+        tcnt = M;
+}
+
+void Sort_Tree(int s, int e)    // Merge Sort (내림차순)
+{
+        int idx1, idx2, idx_tmp;
+        int m = (s + e) / 2;
+
+        if(s >= e) return;
+
+        Sort_Tree(s, m);
+        Sort_Tree(m + 1, e);
+
+        idx1 = s;       idx2 = m + 1;         idx_tmp = s;
+        while( idx1 <= m || idx2 <= e )
+        {
+                if( (idx2 > e) ||( (idx1 <= m) && (tree[idx1].age >= tree[idx2].age) ) ) tmp[idx_tmp++] = tree[idx1++];
+                else tmp[idx_tmp++] = tree[idx2++];
+        }
+        for(idx1 = s; idx1 <= e; idx1++) tree[idx1] = tmp[idx1];
+}
+
+void Set_Data(void)     // 모든 땅의 초기 양분은 모두 5
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++) for(j = 1; j <= N; j++) Y[i][j] = 5;
+}
+
+void Four_Season(void)
+{
+        int tree_cnt = M - 1;
+        int i, j, y, x, ny, nx;
+        TREE tmp = {0, 0, 0, 0};
+    
+        for(i = tree_cnt; i >= 0; i--)
+        {
+                if( tree[i].dead ) continue;    // 죽었으면 걸러(작년까지는 살아있다가 올해 죽은 나무에 대해서는 처리를 해주어야 하지만, 작년에 죽은 나무들은 신경쓸 필요 없음!)
+                y = tree[i].y;  x = tree[i].x;
+                // Spring : Y[y][x]에 있는 양분 빨아들이기 (양분 부족하면 그 나무 즉사)
+                if( Y[y][x] >= tree[i].age )
+                {
+                        Y[y][x] -= tree[i].age;
+                        // Autumn : 봄을 지나면서 죽지 않고 살아 있는 나무에 대해서만! 나이가 5의 배수일 때, 8방 아기 나무 생성
+                        if( ++tree[i].age % 5 == 0 )
+                        {
+                                for(j = 0; j < 8; j++)
+                                {
+                                        ny = y + dy[j];          nx = x + dx[j];
+                                        if(ny < 1 || ny > N || nx < 1 || nx > N) continue;
+                                        tmp.y = ny;      tmp.x = nx;
+                                        tmp.age = 1;    tmp.dead = 0;
+                                        tree[M++] = tmp;
+                                        tcnt++;
+                                }
+                        }
+                }
+                else
+                {
+                        tree[i].dead = 1;  // 즉사 (in Spring)
+                        // Summer
+                        A[ y ][ x ].dead += tree[i].age / 2;
+                        tcnt--;
+                }
+        }
+        // Winter
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        Y[i][j] += ( A[i][j].now + A[i][j].dead );
+                        A[i][j].dead = 0;
+                }
+        }
+        // 죽은 나무 없애기
+        Delete_Dead();
+}
+
+void Delete_Dead(void)
+{
+        int i, j;
+
+        for(i = 0; i < M; i++)
+        {
+                if( !tree[i].dead ) continue;
+                for(j = i + 1; j < M; j++)
+                {
+                        tree[j - 1] = tree[j];
+                }
+                M--;
+        }
+}
+
+void Print(void)
+{
+        printf("%d\n", tcnt);
+}
+#endif
