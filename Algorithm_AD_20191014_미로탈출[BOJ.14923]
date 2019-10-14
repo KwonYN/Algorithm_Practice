@@ -1,0 +1,121 @@
+// 20191014
+// [BOJ. 14923] 미로 탈출
+#if 01
+#include <stdio.h>
+#define MAX     (1010)
+#define INF     (987654321)
+
+typedef struct { int y, x, magic; }NODE;
+NODE Que[MAX * MAX * 2];
+
+void Input(void);
+void InQ(int yy, int xx, int mm);
+NODE * OutQ(void);
+int BFS_Escape(void);
+void Init_Visit(void);
+void Print(void);
+void Print_Visit(void);
+
+int N, M, D;
+int Map[MAX][MAX];
+int Hx, Hy, Ex, Ey;
+int dy[4] = {-1, 1, 0, 0};
+int dx[4] = {0, 0, -1, 1};
+int Wp, Rp;
+int Visit[MAX][MAX][2];
+
+int main(void)
+{
+        Input();
+        D = BFS_Escape();
+        //Print_Visit();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        scanf("%d %d", &N, &M);
+        scanf("%d %d", &Hy, &Hx);
+        scanf("%d %d", &Ey, &Ex);
+        for(i = 1; i <= N; i++) for(j = 1; j <= M; j++) scanf("%d", &Map[i][j]);
+}
+
+void InQ(int yy, int xx, int mm)
+{
+        Que[Wp].y = yy;
+        Que[Wp].x = xx;
+        Que[Wp++].magic = mm;
+}
+
+NODE * OutQ(void) { return &(Que[Rp++]); }
+
+int BFS_Escape(void)
+{
+        NODE * out = (NODE *)0x0;
+        int i, check;
+        int sy, sx, mm, ny, nx;
+
+        Init_Visit();
+        Wp = Rp = 0;
+        InQ(Hy, Hx, 0);         Visit[Hy][Hx][0] = 0;
+        InQ(Hy, Hx, 1);         Visit[Hy][Hx][1] = 0;
+        while(Wp > Rp)
+        {
+                out = OutQ();
+                sy = out->y;            sx = out->x;            mm = out->magic;
+                if( sy == Ey && sx == Ex ) return Visit[sy][sx][mm];
+                for(i = 0; i < 4; i++)
+                {
+                        ny = sy + dy[i];                nx = sx + dx[i];
+                        if( ny < 1 || ny > N || nx < 1 || nx > M ) continue;
+                        check = Visit[sy][sx][mm] + 1;
+                        if( !Map[ny][nx] && Visit[ny][nx][mm] > check )
+                        {
+                                Visit[ny][nx][mm] = check;
+                                InQ(ny, nx, mm);
+                        }
+                        else if( Map[ny][nx] && mm < 1 && Visit[ny][nx][1] > check )
+                        {
+                                Visit[ny][nx][1] = check;
+                                InQ(ny, nx, 1);
+                        }
+                }
+        }
+
+        return -1;
+}
+
+void Init_Visit(void)
+{
+        int m, i, j;
+
+        for(m = 0; m <= 1; m++) for(i = 1; i <= N; i++) for(j = 1; j <= M; j++) Visit[i][j][m] = INF;
+}
+
+void Print(void)
+{
+        printf("%d\n", D);
+}
+
+void Print_Visit(void)
+{
+        int m, i, j;
+
+        for(m = 0; m <= 1; m++)
+        {
+                printf("%d번 부숨\n", m);
+                for(i = 1; i <= N; i++)
+                {
+                        for(j = 1; j <= M; j++)
+                        {
+                                printf("%2d ", Visit[i][j][m]);
+                        }
+                        printf("\n");
+                }
+        }
+}
+#endif
