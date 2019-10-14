@@ -1,0 +1,287 @@
+// 20191014
+// [ 문제 A1: [TEST] 페인트2 ]
+/*
+	* 문제 제대로 안 읽어보고, 많이 풀어봤던 BFS라고 생각하고 바로 들어감
+		- 잘못됨을 인지하고 다시 읽어봤지만, 당황해서 두 번이나 잘못 풀어서 다시 지웠음...
+	* 문제 푸는데 가장 중요했던 아이디어는? : 오염된 지역에서 더 이상 퍼지지 않고 막히는 것이 아니라,
+										거기에서도 더 퍼질 수 있다는 것! (마치 연구소3처럼!)
+	[ Review ]
+	* 2번인지 3번인지 몇 번 떨어뜨리는지 고정되어 있잖아? 그러면 4중 루프면은 바로 해결될 것 => 아이디어!!
+	* 그런데 Map이 워낙 작기 때문에 어떻게 풀든 풀리긴 함
+	* 추가적으로 돌아가는 경로나 비효율적인 경우를 없애려고 조건을 넣어줄 때,
+	  실제로 그렇게 작동을 할지 설계 단에서부터 생각을 잘 해야 하고 + 스스로 TC를 만들어서 넣어봐라! (매우 작게 or 매우 크게)
+*/
+#if 0
+#include <stdio.h>
+#define MAX	(30)
+
+typedef struct { int y, x; }NODE;
+NODE dot[MAX * MAX * 2];
+NODE Que[MAX * MAX * 2];
+
+void Input(void);
+void DFS(int L, int s_idx);
+int BFS(void);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+void Init_Visit(void);
+void Print(void);
+void Print_List(int L);
+
+int dot_cnt;
+int N;
+int Map[MAX][MAX];
+int Range;
+int max_cnt;
+int Visit[MAX][MAX];
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int Wp, Rp;
+int List[3];
+
+int main(void)
+{
+	freopen("in.txt", "r", stdin);
+
+	Input();
+	DFS(1, 1);
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	dot_cnt = 1;		max_cnt = 0;
+	scanf("%d", &N);
+	scanf("%d", &Range);
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%d", &Map[i][j]);
+			dot[dot_cnt].y = i;
+			dot[dot_cnt++].x = j;
+		}
+	}
+}
+
+void DFS(int L, int s_idx)
+{
+	int i, j, r;
+
+	if (L > 2)
+	{
+		//Print_List(L);
+		Init_Visit();
+		r = BFS();
+		//printf("r = %d\n", r);
+		if (max_cnt < r) max_cnt = r;
+		return;
+
+	}
+
+	for (i = s_idx; i < dot_cnt; i++)
+	{
+		List[L] = i;
+		DFS(L + 1, i + 1);
+		List[L] = 0;
+	}
+}
+
+
+int BFS(void)
+{
+	NODE * out = (NODE *)0x0;
+	int i, cnt = 0;
+	int sy, sx, ny, nx;
+
+	Wp = Rp = 0;
+	for (i = 1; i <= 2; i++)
+	{
+		sy = dot[ List[i] ].y;	sx = dot[ List[i] ].x;
+		InQ( sy, sx );
+		Visit[sy][sx] = 0;
+		if ( !Map[sy][sx] ) cnt++;
+	}
+
+	while (Wp > Rp)
+	{
+		out = OutQ();
+		sy = out->y;		sx = out->x;
+		if (Visit[sy][sx] == Range) continue;
+		for (i = 0; i < 4; i++)
+		{
+			ny = sy + dy[i];	nx = sx + dx[i];
+			if (ny < 1 || ny > N || nx < 1 || nx > N ) continue;
+			if ( Visit[ny][nx] == -1 )
+			{
+				InQ(ny, nx);
+				Visit[ny][nx] = Visit[sy][sx] + 1;
+				if ( !Map[ny][nx] )	cnt++;
+			}
+		}
+	}
+	return cnt;
+}
+
+void InQ(int yy, int xx)
+{
+	Que[Wp].y = yy;
+	Que[Wp++].x = xx;
+}
+
+NODE * OutQ(void) { return &(Que[Rp++]); }
+
+void Init_Visit(void)
+{
+	int i, j;
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			Visit[i][j] = -1;
+		}
+	}
+}
+
+void Print_List(int L)
+{
+	int i;
+
+	printf("Print_List\n");
+	for (i = 1; i < L; i++) printf("%d ", List[i]);
+	printf("\n");
+}
+
+void Print(void)
+{
+	printf("%d\n", max_cnt);
+}
+#endif
+
+// 다른 ver. - 그래도 시간 오래 걸림
+#if 0
+#include <stdio.h>
+#define MAX	(30)
+
+typedef struct { int y, x; }NODE;
+NODE Que[MAX * MAX * 2];
+NODE List[3];
+
+void Input(void);
+void DFS(int L, int s_idx);
+int BFS(void);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+void Print(void);
+
+int N;
+int Map[MAX][MAX];
+int Range;
+int max_cnt;
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int Wp, Rp;
+
+int main(void)
+{
+	Input();
+	DFS(1, 1);
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	max_cnt = 0;
+	scanf("%d", &N);
+	scanf("%d", &Range);
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%d", &Map[i][j]);
+		}
+	}
+}
+
+void DFS(int L, int s_idx)
+{
+	int i, j, r;
+
+	if (L > 2)
+	{
+		r = BFS();
+		if (max_cnt < r) max_cnt = r;
+		return;
+
+	}
+
+	for (i = s_idx; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			List[L].y = i;		List[L].x = j;
+			DFS(L + 1, i);
+			List[L].y = 0;		List[L].x = 0;
+		}
+	}
+}
+
+
+int BFS(void)
+{
+	NODE * out = (NODE *)0x0;
+	int i, cnt = 0;
+	int sy, sx, ny, nx;
+	int Visit[MAX][MAX] = { 0 };
+
+	Wp = Rp = 0;
+	for (i = 1; i <= 2; i++)
+	{
+		sy = List[i].y;		sx = List[i].x;
+		InQ(sy, sx);
+		Visit[sy][sx] = 1;
+		if (!Map[sy][sx]) cnt++;
+	}
+
+	while (Wp > Rp)
+	{
+		out = OutQ();
+		sy = out->y;		sx = out->x;
+		if (Visit[sy][sx] == Range + 1) continue;
+		for (i = 0; i < 4; i++)
+		{
+			ny = sy + dy[i];	nx = sx + dx[i];
+			if (ny < 1 || ny > N || nx < 1 || nx > N) continue;
+			if (Visit[ny][nx] == 0)
+			{
+				InQ(ny, nx);
+				Visit[ny][nx] = Visit[sy][sx] + 1;
+				if (!Map[ny][nx])	cnt++;
+			}
+		}
+	}
+	return cnt;
+}
+
+void InQ(int yy, int xx)
+{
+	Que[Wp].y = yy;
+	Que[Wp++].x = xx;
+}
+
+NODE * OutQ(void) { return &(Que[Rp++]); }
+
+void Print(void)
+{
+	printf("%d\n", max_cnt);
+}
+#endif
