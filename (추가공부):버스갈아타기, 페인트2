@@ -1,0 +1,392 @@
+// 버스 갈아타기
+#if 01
+ 
+#include  <stdio.h>
+#define MAX_BUS (5000+10)
+typedef struct st {
+    int x1, y1;
+    int x2, y2;
+}BUS;
+ 
+int X, Y;
+int bCnt;
+int sX, sY;
+int eX, eY;
+ 
+BUS bus[MAX_BUS];
+int chk[MAX_BUS];  //  용도!
+ 
+typedef struct {
+    int bus_n;
+    int cnt;
+}QUEUE;
+ 
+QUEUE queue[MAX_BUS];
+int wp, rp;
+ 
+#define InQueue(X)   ( queue[wp++] = (X) )
+#define OutQueue(X)  ( (X) = queue[rp++] )
+#define SWAP(a, b) { int temp; temp = a; a = b; b = temp; }
+void input(void)
+{
+    int id, n;
+    int x1, y1, x2, y2;
+ 
+    scanf("%d %d", &X, &Y);
+    scanf("%d", &bCnt);
+    for (n = 0; n < bCnt; n++)
+    {
+        scanf("%d %d %d %d %d", &id, &x1, &y1, &x2, &y2);
+        if (x1 == x2)
+        {
+            if (y1 > y2) SWAP(y1, y2)
+        }
+        else
+        {
+            if (x1 > x2) SWAP(x1, x2)  // y1 == y2 인 상황
+        }
+ 
+        bus[n] = (BUS) { x1, y1, x2, y2 };
+    }
+    scanf("%d %d %d %d", &sX, &sY, &eX, &eY);
+}
+ 
+void Init_BFS(void) {
+    int n;
+    QUEUE temp;
+    BUS tbus;
+ 
+    wp = rp = 0;
+    for (n = 0; n < bCnt; n++)
+    {
+        tbus = bus[n];
+        if (tbus.x1 > sX || tbus.x2 < sX) continue;
+        if (tbus.y1 > sY || tbus.y2 < sY) continue;
+        temp = (QUEUE) { n, 1 };
+        InQueue(temp);
+    }
+}
+int Check(BUS b1, BUS b2)
+{
+    //if (((b1.x1 <= b2.x1 && b2.x1 <= b1.x2)
+    //  || (b2.x1 <= b1.x1 && b1.x1 <= b2.x2))
+    //  && ((b1.y1 <= b2.y1 && b2.y1 <= b1.y2)
+    //  || (b2.y1 <= b1.y1 && b1.y1 <= b2.y2))) return 1;
+ 
+    if (b2.x2 >= b1.x1 && b1.x2 >= b2.x1 
+        && b2.y2 >= b1.y1 && b1.y2 >= b2.y1) return 1;
+    return 0;
+}
+ 
+int BFS(void)
+{
+    QUEUE out, nbus;
+    BUS tmp;
+    int n;
+ 
+    Init_BFS();
+    while (wp > rp)
+    {
+        OutQueue(out);
+        tmp = bus[out.bus_n];
+        if (tmp.x1 <= eX && eX <= tmp.x2 && tmp.y1 <= eY && eY <= tmp.y2)
+            return out.cnt;
+ 
+        for (n = 0; n < bCnt; n++)
+        {
+            nbus = (QUEUE) { n, out.cnt + 1 };
+            if (chk[nbus.bus_n]) continue;
+            if (!Check(bus[out.bus_n], bus[nbus.bus_n])) continue;
+            InQueue(nbus);
+            chk[nbus.bus_n] = 1;
+        }
+    }
+    return 0;
+}
+ 
+void printBus(void)
+{
+    int n;
+    BUS t;
+    for (n = 0; n < bCnt; n++)
+    {
+        t = bus[n];
+        printf("bus[%d] : %d %d / %d %d\n", n, t.x1, t.y1, t.x2, t.y2);
+    }
+    printf("\n");
+}
+void printQueue(void)
+{
+    int n;
+    for (n = 0; n < wp; n++)
+    {
+        printf("%d : %d %d\n", n, queue[n].bus_n, queue[n].cnt);
+    }
+}
+ 
+int main(void)
+{
+    //freopen("indata.txt", "r", stdin);
+    input();
+    printf("%d\n", BFS());
+    //printBus();
+    //printQueue();
+    return 0;
+}
+#endif
+
+
+
+
+#include <stdio.h>
+ 
+#define MAX (5010)
+ 
+typedef struct st {
+    int id;
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+    char d;
+} BUS;
+ 
+int X, Y, K;
+int SX, SY, DX, DY;
+int wp, rp;
+int A[MAX][MAX];
+int Visit[MAX];
+BUS Bus[MAX];
+BUS Queue[MAX];
+ 
+void InQueue(BUS bus) { Queue[wp++] = bus; }
+BUS OutQueue(void) { return Queue[rp++]; }
+ 
+void Input(void);
+int BFS(void);
+ 
+int main(void)
+{
+    Input();
+    printf("%d\n", BFS());
+ 
+    return 0;
+}
+ 
+void Input(void)
+{
+    int i;
+    int b;
+    int id, x1, x2, y1, y2;
+ 
+    scanf("%d %d %d", &X, &Y, &K);
+ 
+    for (i = 1; i <= K; i++)
+    {
+        // 입력
+        scanf("%d %d %d %d %d", &id, &x1, &y1, &x2, &y2);
+        Bus[i].id = id;
+        if (x1 < x2)
+        {
+            Bus[i].x1 = x1;
+            Bus[i].x2 = x2;
+        }
+        else
+        {
+            Bus[i].x1 = x2;
+            Bus[i].x2 = x1;
+        }
+        if (y1 < y2)
+        {
+            Bus[i].y1 = y1;
+            Bus[i].y2 = y2;
+        }
+        else
+        {
+            Bus[i].y1 = y2;
+            Bus[i].y2 = y1;
+        }
+        // 인접 만들기
+        for (b = 1; b < i; b++)
+        {
+            if (Bus[b].y2 < Bus[i].y1) continue;
+            if (Bus[b].x2 < Bus[i].x1) continue;
+            if (Bus[b].y1 > Bus[i].y2) continue;
+            if (Bus[b].x1 > Bus[i].x2) continue;
+            A[Bus[b].id][Bus[i].id] = A[Bus[i].id][Bus[b].id] = 1;
+        }
+    }
+ 
+    scanf("%d %d %d %d", &SX, &SY, &DX, &DY);
+}
+ 
+int BFS(void)
+{
+    BUS out;
+    int i;
+ 
+    // 시작점 넣기
+    wp = rp = 0;
+    for (i = 1; i <= K; i++)
+    {
+        if (((Bus[i].x1 <= DX) && (DX <= Bus[i].x2)) && ((Bus[i].y1 <= DY) && (DY <= Bus[i].y2)))
+        {
+            Bus[i].d = 1;
+        }
+        if (((Bus[i].x1 <= SX) && (SX <= Bus[i].x2)) && ((Bus[i].y1 <= SY) && (SY <= Bus[i].y2)))
+        {
+            InQueue(Bus[i]);
+            Visit[Bus[i].id] = 1;
+        }
+    }
+ 
+    // go
+    while (rp < wp)
+    {
+        out = OutQueue();
+        if (out.d == 1) return Visit[out.id];
+        for (i = 1; i <= K; i++)
+        {
+            if (Visit[Bus[i].id] != 0) continue;
+            if (A[out.id][Bus[i].id] == 1)
+            {
+                Visit[Bus[i].id] = Visit[out.id] + 1;
+                InQueue(Bus[i]);
+            }
+        }
+    }
+ 
+    return -1;
+}
+ 
+ 
+ 
+ 
+ 
+ // 페인트 2 (DFS - 155)
+#if 01
+#include <stdio.h>
+ 
+int Map[30][30];
+int chk[30][30];
+int N;
+int K;
+int max;
+int list[3][2];
+int p[30][30];
+int gMAX;
+int oneMAX;
+ 
+void input(void);
+//int paint(void);
+void DFS(int L, int S);
+void init_p(void);
+int paintOne(int sY, int sX, int flag);
+void print_p(void);
+ 
+int main(void)
+{
+    //freopen("indata.txt", "r", stdin);
+    //freopen("outdata.txt", "w", stdout);
+    input();
+    DFS(1, 0);
+    printf("%d\n", max);
+}
+ 
+void input(void)
+{
+    int i, j;
+    scanf("%d", &N);
+    scanf("%d", &K);
+    for (i = 1; i <= N; i++)
+    {
+        for (j = 1; j <= N; j++)
+        {
+            scanf("%d", &Map[i][j]);
+        }
+    }
+    oneMAX = (K*K) + (K + 1)*(K + 1);
+    gMAX = oneMAX * 2;
+}
+ 
+void DFS(int L, int S)
+{
+    int i, j;
+     
+    if (max == gMAX) return;  // 큰 도움은 안되지만 idea
+    if (L > 2)
+    {
+        //printf("%d %d : %d\n", list[1][0], list[1][1], max);
+        if (S > max) {
+            max = S;            
+        }
+        return;
+    }
+ 
+ 
+    for (i = 1; i <= N; i++)
+    {
+        for (j = 1; j <= N; j++)
+        {
+            if (chk[i][j]) continue;
+            if (L == 1) init_p();
+            if (L == 2 && S + oneMAX <= max) continue;
+            if (L == 2 && ( (list[1][0] > i)
+                || ((list[1][0] == i) && (list[1][1] > j)))) continue;
+            chk[i][j] = 1;
+            list[L][0] = i;
+            list[L][1] = j;
+            DFS(L + 1, S + paintOne(i, j, L - 2));
+            chk[i][j] = 0;
+            list[L][0] = 0;
+            list[L][1] = 0;
+        }
+    }
+}
+ 
+void init_p(void)
+{
+    int r, c;
+    for (r = 1; r <= N; r++)
+    {
+        for (c = 1; c <= N; c++)
+        {
+            p[r][c] = 0;
+        }
+    }
+}
+void print_p(void)
+{
+    int r, c;
+    for (r = 1; r <= N; r++)
+    {
+        for (c = 1; c <= N; c++)
+        {
+            printf("%d ", p[r][c]);
+        }
+        printf("\n");
+    }
+}
+int paintOne(int sY, int sX, int flag)
+{
+    int r, c, step = 0;
+    int cnt = 0;
+ 
+    for (r = sY - K; r <= sY + K; r++)
+    {
+        if (r<1 || r>N) {
+            step += (r >= sY) ? -1 : 1;
+            continue;
+        }
+        for (c = sX - step; c <= sX + step; c++)
+        {
+            if (c<1 || c>N) continue;
+            if (Map[r][c] || p[r][c]) continue;
+            p[r][c] = flag;
+            cnt++;
+        }
+        step += (r >= sY) ? -1 : 1;
+    }
+    return cnt;
+}
+#endif
