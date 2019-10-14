@@ -1,0 +1,176 @@
+// 20191014
+// [BOJ. 17140] 이차원 배열과 연산
+#if 01
+#include <stdio.h>
+#define MAX	(101)
+
+typedef struct { int num, cnt; }OPERATION;
+OPERATION chk[MAX];
+
+void Input(void);
+void Set_Struct(int num);
+void Operation(void);
+void Operation_R(void);
+void Operation_C(void);
+void Sort(int max);
+void Print(void);
+void Print_ARR(int max_row, int max_col);
+
+int r, c, k;
+int ARR[MAX][MAX];
+int max_row, max_col;
+int sec;
+int chk_R[MAX];	// 구조체로 하는 것이 옳을까?
+int chk_C[MAX];
+
+int main(void)
+{
+	freopen("in.txt", "r", stdin);
+
+	Input();
+	Operation();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	scanf("%d %d %d", &r, &c, &k);
+	for (i = 1; i <= 3; i++) for (j = 1; j <= 3; j++) scanf("%d", &ARR[i][j]);
+}
+
+void Set_Struct(int num)
+{
+	int i;
+
+	for (i = 0; i <= num; i++)
+	{
+		chk[i].num = i;
+		chk[i].cnt = 0;
+	}
+}
+
+void Operation(void)
+{
+	Set_Struct(100);
+	max_row = max_col = 3;
+	while ( ARR[r][c] != k )
+	{
+		// R연산 조건
+		if (max_row >= max_col) Operation_R();
+		// C연산 조건
+		else Operation_C();
+
+		if (++sec > 100)
+		{
+			sec = -1;
+			return;
+		}
+		//Print_ARR(max_row, max_col);
+	}
+}
+
+void Operation_R(void)
+{
+	int i, j, col, max;
+
+	for (i = 1; i <= max_row; i++)
+	{
+		col = 0;		max = 0;
+		// 각 행을 기준으로 모든 열(max_row까지)에 있는 수들을 카운트 해줌 
+		for (j = 1; j <= max_col; j++)
+		{
+			chk[ARR[i][j]].cnt++;
+			if (max < ARR[i][j]) max = ARR[i][j];
+		}
+		// 그 후 일단 그 곳까지는 0으로 깔아줌
+		// (만약 R연산 후의 열 개수가 증가한다면, 덮히게 되므로 필요 없을 수도 있지만, 반대의 경우에는 따로 처리해주기 귀찮기 때문!)
+		for (j = 1; j <= max_col; j++) ARR[i][j] = 0;
+		// 선> 갯수 오름차순, 후> 수의 크기 오름차순
+		Sort(max);
+		// 정렬된 후 깔아줌
+		for (j = 1; j <= max; j++)
+		{
+			if (chk[j].cnt == 0) continue;
+			ARR[i][++col] = chk[j].num;
+			ARR[i][++col] = chk[j].cnt;
+		}
+		if (max_col < col) max_col = col;
+		Set_Struct(max);
+	}
+}
+
+void Operation_C(void)
+{
+	int i, j, row, max;
+
+	for (j = 1; j <= max_col; j++)
+	{
+		row = 0;		max = 0;
+		// 각 열을 기준으로 모든 행(max_col까지)에 있는 수들을 카운트 해줌 
+		for (i = 1; i <= max_row; i++)
+		{
+			chk[ARR[i][j]].cnt++;
+			if (max < ARR[i][j]) max = ARR[i][j];
+		}
+		// 그 후 일단 그 곳까지는 0으로 깔아줌
+		// (만약 C연산 후의 열 개수가 증가한다면, 덮히게 되므로 필요 없을 수도 있지만, 반대의 경우에는 따로 처리해주기 귀찮기 때문!)
+		for (i = 1; i <= max_row; i++) ARR[i][j] = 0;
+		// 선> 갯수 오름차순, 후> 수의 크기 오름차순
+		Sort(max);
+		// 정렬된 후 깔아줌
+		for (i = 1; i <= max; i++)
+		{
+			if (chk[i].cnt == 0) continue;
+			ARR[++row][j] = chk[i].num;
+			ARR[++row][j] = chk[i].cnt;
+		}
+		if (max_row < row) max_row = row;
+		Set_Struct(max);
+	}
+}
+
+void Sort(int max)
+{
+	int i, j;
+	OPERATION tmp = {0, 0};
+
+	for (i = 1; i < max; i++)
+	{
+		for (j = i + 1; j <= max; j++)
+		{
+			if ( (chk[i].cnt > chk[j].cnt) 
+				|| (chk[i].cnt == chk[j].cnt && chk[i].num > chk[j].num) )
+			{
+				tmp = chk[i];
+				chk[i] = chk[j];
+				chk[j] = tmp;
+			}
+		}
+	}
+}
+
+void Print_ARR(int max_row, int max_col)
+{
+	int i, j;
+
+	printf("Print_ARR\n");
+	for (i = 1; i <= max_row; i++)
+	{
+		for (j = 1; j <= max_col; j++)
+		{
+			printf("%2d ", ARR[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n\n");
+}
+
+void Print(void)
+{
+	printf("%d\n", sec);
+}
+#endif
