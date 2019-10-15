@@ -1,0 +1,210 @@
+// 20191015
+// 문제 A4: [TEST] 불켜기 - Linked List
+/*
+		FF_DFS, FF_BFS 둘 다 풀 수 있음!!
+*/
+#if 0
+#include <stdio.h>
+#define MAX	(110)
+#define MAXQ	(MAX * MAX)
+
+typedef struct _st
+{ 
+	int x, y; 
+	struct _st * next;
+}NODE;
+NODE Que[MAXQ];
+NODE sw[20001];
+
+typedef struct
+{
+	int flag;
+	struct _st * next;
+}ROOM;
+ROOM Room[MAX][MAX];
+
+void Input(void);
+void Print_Link(void);
+void BFS_Switch_On(int sy, int sx);
+void InQ(int yy, int xx, NODE * nn);
+NODE * OutQ(void);
+void Print_Flag(void);
+void Init_Struct_Visit(void);
+
+int T, N, M;	// TC, 방의 크기, 스위치 개수
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int Visit[MAX][MAX];
+int room_cnt;
+int Wp, Rp;
+
+int main(void)
+{
+	int t;
+
+	freopen("in.txt", "r", stdin);
+	scanf("%d", &T);
+	for (t = 1; t <= T; t++)
+	{
+		Input();
+		//Print_Link();
+		BFS_Switch_On(1, 1);
+		//Print_Flag();
+		printf("%d\n", room_cnt);
+		Init_Struct_Visit();
+	}
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, x, y, a, b;
+	NODE * head = (NODE *)0x0;
+
+	room_cnt = 0;
+	scanf("%d %d", &N, &M);
+	for (i = 1; i <= M; i++)
+	{
+		scanf("%d %d %d %d", &x, &y, &a, &b);
+		sw[i] = (NODE){a, b, (NODE *)0x0};
+		sw[i].next = Room[y][x].next;
+		Room[y][x].next = &sw[i];
+		/*
+		if (Room[y][x].next == (NODE *)0x0) Room[y][x].next = &sw[i];
+		else
+		{
+			sw[i].next = Room[y][x].next;
+			Room[y][x].next = &sw[i];
+			//for (head = Room[y][x].next; head->next; head = head->next);
+			//head->next = &sw[i];
+		}
+		*/
+	}
+	room_cnt = 1;
+	Room[1][1].flag = 1;	// 불 켜져 있음
+	Visit[1][1] = 1;
+}
+
+void Print_Link(void)
+{
+	int i, j;
+	NODE * k = (NODE *)0x0;
+
+	printf("Print_Link\n");
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			printf("y = %d, x = %d :", i, j);
+			for (k = Room[i][j].next; k; k = k->next)
+			{
+				printf("yy = %d, xx = %d // ", k->y, k->x);
+			}
+			printf("\n");
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
+void BFS_Switch_On(int sy, int sx)
+{
+	NODE * out = (NODE *)0x0;
+	NODE * head = (NODE *)0x0;
+	int i, d;
+	int ny, nx, ni, nj;
+
+	Wp = Rp = 0;
+	for (head = Room[sy][sx].next; head; head = head->next)
+	{
+		if (Room[head->y][head->x].flag) continue;
+		Room[head->y][head->x].flag = 1;
+		room_cnt++;
+	}
+	InQ(sy, sx, Room[sy][sx].next);
+	Visit[sy][sx] = 1;
+	while (Wp != Rp)
+	{
+		out = OutQ();
+		sy = out->y;		sx = out->x;
+		for (i = 0; i < 4; i++)
+		{
+			ny = sy + dy[i];		nx = sx + dx[i];
+			if ( ny < 1 || ny > N || nx < 1 || nx > N ) continue;
+			if ( Room[ny][nx].flag != 1 || Visit[ny][nx] ) continue;	// 꺼져있거나 이미 방문했으면 컨티뉴
+			Visit[ny][nx] = 1;
+			InQ(ny, nx, Room[ny][nx].next);
+			for (head = Room[ny][nx].next; head; head = head->next)
+			{
+				if (Room[head->y][head->x].flag) continue;
+				Room[head->y][head->x].flag = 1;
+				room_cnt++;
+				// [★★ 핵심 아이디어! ★★]
+				// 이미 방문했던 곳인데, 쩌어엉 뒤에 있는 방에 불이 켜졌네?
+				// 그렇다면 다시 돌아갈 필요 없이, 그 장소가 이미 방문했던 곳이랑 인접한지를 보고,
+				// 인접했다면 그 좌표를 InQ해주면 방문표시로 연결될 것!!!!
+				for (d = 0; d < 4; d++)
+				{
+					ni = head->y + dy[d];		nj = head->x + dx[d];
+					if (ni < 1 || ni > N || nj < 1 || nj > N) continue;
+					if ( Visit[ni][nj] )	// && Room[i][j].flag
+					{
+						InQ(ni, nj, Room[ni][nj].next);
+					}
+				}
+			}
+			
+		}
+	}
+}
+
+void InQ(int yy, int xx, NODE * nn)
+{
+	Que[Wp].y = yy;
+	Que[Wp].x = xx;
+	Que[Wp].next = nn;
+	if (++Wp >= MAXQ) Wp -= MAXQ;
+}
+
+NODE * OutQ(void)
+{ 
+	if (Rp >= MAXQ) Rp -= MAXQ;
+	return &(Que[Rp++]);
+}
+
+void Init_Struct_Visit(void)
+{
+	int i, j;
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			Visit[i][j] = 0;
+			Room[i][j].flag = 0;
+			Room[i][j].next = (NODE *)0x0;
+		}
+	}
+	for (i = 1; i <= M; i++)
+	{
+		sw[i].y = sw[i].x = 0;
+		sw[i].next = (NODE *)0x0;
+	}
+}
+
+void Print_Flag(void)
+{
+	int i, j;
+
+	printf("Switch On ?\n");
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			printf("%d ", Room[i][j].flag);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+#endif
