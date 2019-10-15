@@ -1,0 +1,213 @@
+// 20191015
+// [BOJ. 16985] Maaaaaaaaaze
+#if 0
+#include <stdio.h>
+#define MAX		(7)
+#define MAXQ	(MAX*MAX*MAX)
+#define INF		(987654321)
+
+typedef struct { int z, y, x; }NODE;
+NODE Que[MAXQ];
+NODE start[4] = { { 1, 1, 1 }, { 1, 1, 5 }, { 1, 5, 1 }, { 1, 5, 5 } };
+NODE end[4] = { { 5, 5, 5 }, { 5, 5, 1 }, { 5, 1, 5 }, { 5, 1, 1 } };
+
+void Input(void);
+void Operation(void);
+void DFS(int L);
+void Rotate_Arr(int num, int cnt);
+void Copy_Map(void);
+int BFS(int sz, int sy, int sx, int ez, int ey, int ex);
+void InQ(int zz, int yy, int xx);
+NODE * OutQ(void);
+void Print(void);
+
+int Map[MAX][MAX][MAX];
+int Map2[MAX][MAX][MAX];
+int chk2[MAX];
+int dz[6] = { 0, 0, 0, 0, -1, 1 };
+int dy[6] = { -1, 1, 0, 0, 0, 0 };
+int dx[6] = { 0, 0, -1, 1, 0, 0 };
+int move_cnt;
+int Wp, Rp;
+
+int main(void)
+{
+	freopen("in.txt", "r", stdin);
+
+	Input();
+	Operation();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int z, y, x;
+
+	move_cnt = INF;
+	for (z = 1; z <= 5; z++)
+	{
+		for (y = 1; y <= 5; y++)
+		{
+			for (x = 1; x <= 5; x++)
+			{
+				scanf("%d", &Map[z][y][x]);
+			}
+		}
+	}
+}
+
+void Copy_Map(void)
+{
+	int z, y, x;
+
+	for (z = 1; z <= 5; z++)
+	{
+		for (y = 1; y <= 5; y++)
+		{
+			for (x = 1; x <= 5; x++)
+			{
+				Map2[chk2[z]][y][x] = Map[z][y][x];
+			}
+		}
+	}
+}
+
+void DFS(int L)	// 순열
+{
+	int i, r, k;
+
+	if (L > 5)
+	{
+		Copy_Map();
+		for (k = 0; k < 4; k++)
+		{
+			if (!Map2[start[k].z][start[k].y][start[k].x] || !Map2[end[k].z][end[k].y][end[k].x]) continue;
+			r = BFS(start[k].z, start[k].y, start[k].x, end[k].z, end[k].y, end[k].x);
+			printf("r = %d\n", r);
+			if (move_cnt > r) move_cnt = r;
+		}
+		return;
+	}
+
+	for (i = 1; i <= 5; i++)
+	{
+		if (chk2[i]) continue;
+		chk2[L] = i;
+		DFS(L + 1);
+		chk2[L] = 0;
+	}
+}
+
+void Operation(void)	// 순열 만들기! (0 ~ 3 사이)
+{
+	int a, b, c, d, e;
+
+	for (a = 0; a < 4; a++)
+	{
+		Rotate_Arr(1, a);
+		for (b = 0; b < 4; b++)
+		{
+			Rotate_Arr(2, b);
+			for (c = 0; c < 4; c++)
+			{
+				Rotate_Arr(3, c);
+				for (d = 0; d < 4; d++)
+				{
+					Rotate_Arr(4, d);
+					for (e = 0; e < 4; e++)
+					{
+						Rotate_Arr(5, e);
+						DFS(1);
+						Rotate_Arr(5, 4 - e);
+					}
+					Rotate_Arr(4, 4 - d);
+				}
+				Rotate_Arr(3, 4 - c);
+			}
+			Rotate_Arr(2, 4 - b);
+		}
+		Rotate_Arr(1, 4 - a);
+	}
+}
+
+void Rotate_Arr(int num, int cnt)	// Colckwise
+{
+	int y, x, c;
+	int tmp[MAX][MAX] = { 0 };
+	
+	for (c = 0; c <= cnt; c++)
+	{
+		for (y = 1; y <= 5; y++)
+		{
+			for (x = 1; x <= 5; x++)
+			{
+				tmp[x][6 - y] = Map[num][y][x];
+			}
+		}
+		for (y = 1; y <= 5; y++)
+		{
+			for (x = 1; x <= 5; x++)
+			{
+				Map[num][y][x] = tmp[y][x];
+			}
+		}
+	}
+}
+
+int lcnt = 0;
+
+int BFS(int sz, int sy, int sx, int ez, int ey, int ex)
+{
+	NODE * out = (NODE *)0x0;
+	int i;
+	int nz, ny, nx;
+	int Visit[MAX][MAX][MAX] = { 0 };
+
+
+	//printf("[ %d ] sz = %d, sy = %d, sx = %d // ez = %d, ey = %d, dx = %d\n", ++lcnt, sz, sy, sx, ez, ey, ex);
+	Wp = Rp = 0;
+	InQ(sz, sy, sx);
+	Visit[sz][sy][sx] = 1;
+	while (Wp > Rp)
+	{
+		//printf("Wp = %d, Rp = %d\n", Wp, Rp);
+		out = OutQ();
+		sz = out->z;	sy = out->y;	sx = out->x;
+		for (i = 0; i < 6; i++)
+		{
+			nz = sz + dz[i];	ny = sy + dy[i];	nx = sx + dx[i];
+			if ( nz < 1 || nz > 5 || ny < 1 || ny > 5 || nx < 1 || nx > 5 ) continue;
+			if ( Map2[nz][ny][nx] == 1 && Visit[nz][ny][nx] == 0 )
+			{
+				Visit[nz][ny][nx] = Visit[sz][sy][sx] + 1;
+				if (nz == ez && ny == ey && nx == ex)
+				{
+					//if (Visit[nz][ny][nx] - 1 == 0) printf("ez = %d, ey = %d, dx = %d\n", ez, ey, ex);
+					return Visit[nz][ny][nx] - 1;
+				}
+				InQ(nz, ny, nx);
+			}
+		}
+	}
+
+	return INF;
+}
+
+
+void InQ(int zz, int yy, int xx)
+{
+	Que[Wp].z = zz;
+	Que[Wp].y = yy;
+	Que[Wp++].x = xx;
+}
+
+NODE * OutQ(void) { return &(Que[Rp++]); }
+
+void Print(void)
+{
+	if (move_cnt == INF) move_cnt = -1;
+	printf("%d\n", move_cnt);
+}
+#endif
