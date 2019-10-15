@@ -1,0 +1,186 @@
+// 20191015
+// 문제 A5: [TEST] 7 segment
+#if 0
+#include <stdio.h>
+#define INF	(10000000)
+
+void Input(void);
+void Make_Num(void);
+void DFSA(int L);
+void DFSB(int L);
+void DFSC(int L);
+void Print(void);
+void Print_Impossible_Flag(void);
+
+int digit[13][8];
+int Chk_Num[10][8] = { { 0, 1, 1, 1, 1, 1, 1, 0 },	
+					   { 0, 0, 0, 1, 1, 0, 0, 0 }, 
+					   { 0, 0, 1, 1, 0, 1, 1, 1 },
+					   { 0, 0, 1, 1, 1, 1, 0, 1 },
+					   { 0, 1, 0, 1, 1, 0, 0, 1 }, 
+					   { 0, 1, 1, 0, 1, 1, 0, 1 }, 
+					   { 0, 1, 1, 0, 1, 1, 1, 1 }, 
+					   { 0, 0, 1, 1, 1, 0, 0, 0 }, 
+					   { 0, 1, 1, 1, 1, 1, 1, 1 },
+					   { 0, 1, 1, 1, 1, 1, 0, 1 } };
+int impossible_flag[13][10];	// 0 ~ 9
+int possible_list[13][10];
+int Min;
+int ListA[8];
+int A, B, C;
+
+int main(void)
+{
+	freopen("in.txt", "r", stdin);
+
+	Input();
+	Make_Num();
+	DFSA(1);
+	//Print_Impossible_Flag();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j, r, c;
+
+	A = B = C = 0;
+	Min = INF;
+	for (i = 1; i <= 12; i++)
+	{
+		for (j = 1; j <= 7; j++)
+		{
+			scanf("%1d", &digit[i][j]);
+		}
+		for (r = 0; r <= 9; r++)
+		{
+			for (c = 1; c <= 7; c++)
+			{
+				if ( digit[i][c] && !Chk_Num[r][c] )
+				{
+					impossible_flag[i][r] = -1;	// i번째 LED는 숫자 r이 될 수 없다는 의미!
+				}
+			}
+		}
+	}
+}
+
+
+void Make_Num(void)
+{
+	int i, j, cnt;
+
+	for (i = 1; i <= 12; i++)
+	{
+		cnt = 0;
+		for (j = 0; j <= 9; j++)
+		{
+			if (impossible_flag[i][j] == -1) continue;
+			possible_list[i][++cnt] = j;
+		}
+		possible_list[i][0] = cnt;
+	}
+}
+
+void Check_Result(void)
+{
+	int i, j, r, c;
+
+	for (i = 1; i <= 12; i++)
+	{
+		for (r = 1; r <= possible_list[i][0]; r++)
+		{
+
+		}
+	}
+}
+
+void DFSA(int L)
+{
+	int j;
+
+	if ( L > 3 )
+	{
+		DFSB(4);
+		return;
+	}
+
+	for (j = 1; j <= possible_list[L][0]; j++)
+	{
+		A = A * 10 + possible_list[L][j];
+		DFSA(L + 1);
+		A /= 10;
+	}
+}
+
+void DFSB(int L)
+{
+	int j;
+
+	if ( L > 6 )
+	{
+		DFSC(7);
+		return;
+	}
+
+	for (j = 1; j <= possible_list[L][0]; j++)
+	{
+		B = B * 10 + possible_list[L][j];
+		DFSB(L + 1);
+		B /= 10;
+	}
+}
+
+void DFSC(int L)
+{
+	int j;
+
+	if (Min <= A * B) return;
+	if ( L > 12 )
+	{
+		if ( A * B != C ) return;
+		if (Min > C) Min = C;
+		return;
+	}
+
+	for (j = 1; j <= possible_list[L][0]; j++)
+	{
+		C = C * 10 + possible_list[L][j];
+		DFSC(L + 1);
+		C /= 10;
+	}
+}
+
+void Print(void)
+{
+	printf("%d\n", Min);
+}
+
+void Print_Impossible_Flag(void)
+{
+	int i, j;
+
+	printf("Impossible Flag\n");
+	for (i = 1; i <= 12; i++)
+	{
+		for (j = 0; j <= 9; j++)
+		{
+			printf("%3d", impossible_flag[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+
+	printf("possible list\n");
+	for (i = 1; i <= 12; i++)
+	{
+		for (j = 0; j <= possible_list[i][0]; j++)
+		{
+			printf("%3d ", possible_list[i][j]);
+		}
+		printf("\n");
+	}
+}
+#endif
