@@ -1,0 +1,94 @@
+// 20191016
+// 문제 A8: [TEST] 곱셈
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void DFS(int L);
+int Operation(void);
+void Print(void);
+void Print_List(int L);
+
+int N;
+int Num[10];
+int List[10];
+int max_num;
+
+int main(void)
+{
+	//freopen("in.txt", "r", stdin);
+	Input();
+	DFS(1);
+	Print();
+	return 0;
+}
+
+void Input(void)
+{
+	int i, tmp;
+
+	max_num = 0;
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++)
+	{
+		scanf("%d", &tmp);
+		Num[tmp]++;
+	}
+}
+
+void DFS(int L)
+{
+	int i, r;
+
+	if (L > N)
+	{
+		//Print_List(L);
+		r = Operation();
+		//printf("r = %d\n", r);
+		if (max_num < r) max_num = r;
+		return;
+	}
+
+	for (i = 1; i <= 9; i++)
+	{
+		if (Num[i] == 0) continue;
+		List[L] = i;	Num[i]--;
+		DFS(L + 1);
+		List[L] = 0;	Num[i]++;
+	}
+}
+
+int Operation(void)
+{
+	int i, j, num1, num2, max, check;
+
+	num1 = num2 = max = 0;
+	for (i = 1; i < N; i++)
+	{
+		num1 = num1 * 10 + List[i];
+		num2 = 0;
+		for (j = i + 1; j <= N; j++)
+		{
+			num2 = num2 * 10 + List[j];
+		}
+		check = num1 * num2;
+		if (max < check) max = check;
+	}
+
+	return max;
+}
+
+void Print(void)
+{
+	printf("%d\n", max_num);
+}
+
+void Print_List(int L)
+{
+	int i;
+
+	printf("Print_List\n");
+	for (i = 1; i < L; i++) printf("%2d", List[i]);
+	printf("\n");
+}
+#endif
