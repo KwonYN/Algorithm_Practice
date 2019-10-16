@@ -132,19 +132,19 @@ void Print_List(int L)
 #endif
 
 // Re
-#if 0
+#if 01
 #include <stdio.h>
 #define ABS(a) ( ( (a) < 0 ) ? -(a) : (a) )
 #define DIST(a, b, c, d)	( ( ABS( (a) - (b) ) ) + ( ABS( (c) - (d) ) ) )
-#define INF	(987654321)
 
 typedef struct { int y, x, Energy; }VS;
 VS vs[20];
 VS vs2[20];
 
 void Input(void);
-void Copy_VS(void);
 void DFS(int L);
+void Copy_VS(void);
+int Bomb(void);
 void Print(void);
 void Print_Injub(void);
 void Print_List(int L);
@@ -152,16 +152,15 @@ void Print_List(int L);
 int VS_cnt;
 int MS_cnt, MS_power, MS_Range;
 int Injub[20][20];
-int vcnt;
 int List[6];
-int min;
+int max;
 
 int main(void)
 {
-	freopen("in.txt", "r", stdin);
+	//freopen("in.txt", "r", stdin);
 
 	Input();
-	Print_Injub();
+	//Print_Injub();
 	DFS(1);
 	Print();
 
@@ -172,68 +171,85 @@ void Input(void)
 {
 	int i, j;
 
-	min = INF;
+	max = 0;
 	scanf("%d", &VS_cnt);
-	vcnt = VS_cnt;
 	for (i = 1; i <= VS_cnt; i++)
 	{
 		scanf("%d %d %d", &vs[i].x, &vs[i].y, &vs[i].Energy);
 		for (j = 1; j < i; j++)
-		{
+		{	// 인접배열에 거리를 넣어줬음. (한 군함을 중심으로, 그 군함의 좌표에 미사일을 발사하는데
+			//  그 좌표와 인접(미사일의 범위)한 군함은 데미지를 받으므로!!)
 			Injub[i][j] = Injub[j][i] = DIST(vs[i].y, vs[j].y, vs[i].x, vs[j].x);
 		}
 	}
 	scanf("%d %d %d", &MS_cnt, &MS_power, &MS_Range);
 }
 
-void Copy_VS(void)
-{
-int i;
-
-for (i = 1; i <= VS_cnt; i++) vs2[i] = vs[i];
-}
-
 void DFS(int L)
 {
-	int i, j;
+	int i, r;
 
-	if (min == 0) return;
 	if (L > MS_cnt)
 	{
 		//Print_List(L);
-		if (min > vcnt) min = vcnt;
+		Copy_VS();
+		r = Bomb();
+		//printf("r = %d\n", r);
+		if (max < r) max = r;
 		return;
 	}
 
 	for (i = 1; i <= VS_cnt; i++)
 	{
-		if (vs[i].Energy <= 0) continue;	// 이미 에너지가 다 떨어졌으므로 파괴되었음
 		List[L] = i;
 		DFS(L + 1);
 		List[L] = 0;
 	}
 }
 
+void Copy_VS(void)
+{
+	int i;
+
+	for (i = 1; i <= VS_cnt; i++) vs2[i] = vs[i];
+}
+
 int Bomb(void)
 {
+	int i, j, cnt = 0;
 
+	for (i = 1; i <= MS_cnt; i++)	// 미사일 발사 개수
+	{
+		if (vs2[ List[i] ].Energy <= 0) continue;
+		vs2[ List[i] ].Energy -= MS_power;
+		for (j = 1; j <= VS_cnt; j++)	// 군함 개수
+		{
+			if ( List[i] != j && Injub[ List[i] ][j] <= MS_Range)
+			{
+				if (vs2[j].Energy <= 0) continue;
+				vs2[j].Energy -= MS_power;
+			}
+		}
+	}
+	for (i = 1; i <= VS_cnt; i++) if (vs2[i].Energy <= 0) cnt++;
+
+	return cnt;
 }
 
 void Print(void)
 {
-	printf("%d\n", min);
+	printf("%d\n", VS_cnt - max);
 }
 
 void Print_Injub(void)
 {
 	int i, j;
-
 	printf("Print_Injub\n");
 	for (i = 1; i <= VS_cnt; i++)
 	{
 		for (j = 1; j <= VS_cnt; j++)
 		{
-			printf("%4d", Injub[i][j]);
+			printf("%4d ", Injub[i][j]);
 		}
 		printf("\n");
 	}
@@ -242,14 +258,9 @@ void Print_Injub(void)
 
 void Print_List(int L)
 {
-	int i;
-
+	int i, j;
 	printf("Print_List\n");
-	for (i = 1; i < L; i++)
-	{
-		printf("%2d ", List[i]);
-	}
+	for (i = 1; i < L; i++) printf("%d ", List[i]);
 	printf("\n");
-
 }
 #endif
