@@ -1,0 +1,218 @@
+// 20191016
+// 문제 B0: [TEST] 페그 솔리테어
+#if 0
+#include <stdio.h>
+#include <string.h>
+#define MAX	(20)
+#define INF	(987654321)
+
+void Input(void);
+void DFS(int L, int y, int x, int remain);
+void Print(void);
+void Print_Map(void);
+
+int T;
+char Map[MAX][MAX];
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };	// 인접 체크
+int ddy[4] = { -2, 2, 0, 0 };
+int ddx[4] = { 0, 0, -2, 2 };	// 다음 칸 체크
+int dd[4] = { 1, 0, 3, 2 };
+int pin_cnt;
+int result;
+
+int main(void)
+{
+	int i, r, c, cnt = 0;
+
+	freopen("in.txt", "r", stdin);
+	
+	scanf("%d", &T);
+	for (i = 1; i <= T; i++)
+	{
+		Input();
+		for (r = 1; r <= 5; r++)
+		{
+			for (c = 1; c <= 9; c++)
+			{
+				if (Map[r][c] == 'o')
+				{
+					//printf("=====[%d]=====\n", ++cnt);
+					DFS(1, r, c, pin_cnt);
+					//printf("Back Tracking\n");
+				}
+			}
+		}
+		Print();
+	}
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+	char tmp[100];
+
+	result = INF;
+	pin_cnt = 0;
+	for (i = 1; i<= 5; i++)
+	{
+		scanf("%s", &tmp[1]);
+		for (j = 1; j <= 9; j++)
+		{
+			Map[i][j] = tmp[j];
+			if (tmp[j] == 'o') ++pin_cnt;
+		}
+	}
+}
+
+void DFS(int L, int y, int x, int remain)
+{
+	int i, ny, nx, nny, nnx, r, c;
+	
+	//Print_Map();
+	
+	if (result == 1) return;
+	if (result > remain) result = remain;
+
+	for (i = 0; i < 4; i++)
+	{
+		ny = y + dy[i];		nx = x + dx[i];
+		nny = y + ddy[i];	nnx = x + ddx[i];
+		if (Map[ny][nx] == 'o' && Map[nny][nnx] == '.')
+		{
+			Map[y][x] = '.';
+			Map[ny][nx] = '.';
+			Map[nny][nnx] = 'o';
+
+			for (r = 1; r <= 5; r++)
+			{
+				for (c = 1; c <= 9; c++)
+				{
+					if (Map[r][c] == 'o') DFS(1, r, c, remain - 1);
+					//printf("Back Tracking\n");
+				}
+			}
+
+			Map[nny][nnx] = '.';
+			Map[ny][nx] = 'o';
+			Map[y][x] = 'o';
+		}
+	}
+}
+
+void Print(void)
+{
+	printf("%d %d\n", result, pin_cnt - result);
+}
+
+void Print_Map(void)
+{
+	int i, j;
+
+	printf("Print_Map\n");
+	for (i = 1; i <= 5; i++)
+	{
+		for (j = 1; j <= 9; j++)
+		{
+			printf("%c", Map[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+#endif
+
+// 구조체 사용 ver.
+#if 01
+#include <stdio.h>
+#define INF	(987654321)
+
+typedef struct { int y, x; }NODE;
+NODE Pin[10];
+
+void Input(void);
+void DFS(int remain);
+void Print(void);
+
+char Map[7][11];
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int ddy[4] = { -2, 2, 0, 0 };
+int ddx[4] = { 0, 0, -2, 2 };
+int pin_cnt;
+int remain_pin;
+
+int main(void)
+{
+	int T, i;
+
+	freopen("in.txt", "r", stdin);
+	scanf("%d", &T);
+	for (i = 1; i <= T; i++)
+	{
+		Input();
+		DFS(pin_cnt);
+		Print();
+	}
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+	char tmp[20];
+
+	pin_cnt = 0;
+	remain_pin = INF;
+	for (i = 1; i <= 5; i++)
+	{
+		scanf("%s", &tmp[1]);
+		for (j = 1; j <= 9; j++)
+		{
+			Map[i][j] = tmp[j];
+			if (tmp[j] == 'o') Pin[++pin_cnt] = (NODE){ i, j };
+		}
+	}
+}
+
+void DFS(int remain)
+{
+	int i, d, y, x, ny, nx, nny, nnx;
+
+	if ( remain_pin == 1 ) return;
+	if ( remain_pin > remain ) remain_pin = remain;
+
+	for (i = 1; i <= pin_cnt; i++)
+	{
+		y = Pin[i].y;		x = Pin[i].x;
+		if (Map[y][x] != 'o') continue;
+		for (d = 0; d < 4; d++)
+		{
+			ny = y + dy[d];		nx = x + dx[d];
+			if ( Map[ny][nx] != 'o' ) continue;
+			nny = y + ddy[d];	nnx = x + ddx[d];
+			if (Map[nny][nnx] != '.') continue;
+
+			Map[y][x] = '.';
+			Map[ny][nx] = '.';
+			Pin[i].y = nny;		Pin[i].x = nnx;
+			Map[nny][nnx] = 'o';
+
+			DFS(remain - 1);
+
+			Pin[i].y = y;	Pin[i].x = x;
+			Map[nny][nnx] = '.';
+			Map[ny][nx] = 'o';
+			Map[y][x] = 'o';
+		}
+	}
+}
+
+void Print(void)
+{
+	printf("%d %d\n", remain_pin, pin_cnt - remain_pin);
+}
+#endif
