@@ -1,0 +1,233 @@
+/*
+        1) 1은 갈 수 있는 칸, 0은 갈 수 없는 칸 (BFS)
+        2) z번째 판 시계/반시계 방향으로 회전 가능
+        3) 회전 후, 판 5개 쌓음(순서는 임의로!)
+        4) 임의의 꼭지점 구하고, 대척점(?)에 있는 꼭지점까지 갈 수 있는지? 갈 수 있다면, 이동 횟수는 어떻게 되는지? 최소 이동 횟수는 얼만지?
+        
+        * 처음에는 Map -> Map_tmp -> Map_result로 회전한 맵과 층을 복사했었는데, Map -> Map_tmp가 계속 같은 값을 복사하였기 때문에 맵이 전혀 바뀌지 않았었음
+*/
+// 메ㅔㅔㅔㅔㅔㅔㅔ이즈 다시!!
+#if 0
+#include <stdio.h>
+#define INF     (987654321)
+#define MAXQ    (7*7*7)
+
+typedef struct { int z, y, x; }NODE;
+NODE Que[MAXQ];
+
+void Input(void);
+void Operation(void);
+void Rotate_Arr(int num);
+void DFS(int L);
+void Copy_ARR(void);
+int BFS(void);
+void InQ(int zz, int yy, int xx);
+NODE * OutQ(void);
+void Print(void);
+void Print_Chk(void);
+void Print_List(int L);
+void Print_Map(void);
+
+int Map[7][7][7];
+int Map_result[7][7][7];
+int min_move;
+int chk[7];
+int List[7];
+int Wp, Rp;
+int dz[6] = { -1, 1, 0, 0, 0, 0 };
+int dy[6] = { 0, 0, -1, 1, 0, 0 };
+int dx[6] = { 0, 0, 0, 0, -1, 1 };
+
+int main(void)
+{
+        Input();
+        Operation();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int z, y, x;
+
+        for(z = 1; z <= 5; z++)
+        {
+                for(y = 1; y <= 5; y++)
+                {
+                        for(x = 1; x <= 5; x++)
+                        {
+                                scanf("%d", &Map[z][y][x]);
+                        }
+                }
+        }
+}
+
+void Operation(void)
+{
+        int a, b, c, d, e;
+
+        min_move = INF;
+        for(a = 0; a < 4; a++)
+        {
+                Rotate_Arr(1);
+                for(b = 0; b < 4; b++)
+                {
+                        Rotate_Arr(2);
+                        for(c = 0; c < 4; c++)
+                        {
+                                Rotate_Arr(3);
+                                for(d = 0; d < 4; d++)
+                                {
+                                        Rotate_Arr(4);
+                                        for(e = 0; e < 4; e++)
+                                        {
+                                                Rotate_Arr(5);
+                                                DFS(1);
+                                        }
+                                }
+                        }
+                }
+        }
+}
+
+void Rotate_Arr(int num)
+{
+        int  y, x;
+        int tmp[7][7] = { 0 };
+
+        for(y = 1; y <= 5; y++)
+        {
+                for(x = 1; x <= 5; x++)
+                {
+                        tmp[x][6 - y] = Map[num][y][x];
+                }
+        }
+        for(y = 1; y <= 5; y++)
+        {
+                for(x = 1; x <= 5; x++)
+                {
+                        Map[num][y][x] = tmp[y][x];
+                }
+        }
+}
+
+void DFS(int L)
+{
+        int i, r;
+
+        if( min_move == 12 ) return;
+        if(L > 5)
+        {
+                //Print_Chk();
+                //Print_List(L);
+                Copy_ARR();
+                //Print_Map();
+                if( Map_result[1][1][1] && Map_result[5][5][5] )
+                {
+                        r = BFS();
+                        if(min_move > r) min_move = r;
+                }
+                return;
+        }
+
+        for(i = 1; i <= 5; i++)
+        {
+                if( chk[i] ) continue;
+                chk[i] = 1;
+                List[L] = i;     // List배열의 값은 몇 번째 층으로 가는지, idx는 층
+                DFS(L + 1);
+                List[L] = 0;
+                chk[i] = 0;
+        }
+}
+
+void Copy_ARR(void)
+{
+        int z, y, x;
+
+        for(z = 1; z <= 5; z++)
+        {
+                for(y = 1; y <= 5; y++)
+                {
+                        for(x = 1; x <= 5; x++)
+                        {
+                                Map_result[z][y][x] = Map[ List[z] ][y][x];
+                        }
+                }
+        }
+}
+
+int BFS(void)
+{
+      NODE * out = (NODE *)0x0;
+      int i, sz, sy, sx, nz, ny, nx, move = 0;
+      int Visit[7][7][7] = { 0 };
+
+      Wp = Rp = 0;
+      InQ(1, 1, 1);
+      Visit[1][1][1] = 1;
+      while(Wp > Rp)
+      {
+                //printf("Wp = %d, Rp = %d\n", Wp, Rp);
+                out = OutQ();
+                sz = out->z;    sy = out->y;    sx = out->x;
+                for(i = 0; i < 6; i++)
+                {
+                        nz = sz + dz[i];        ny = sy + dy[i];        nx = sx + dx[i];
+                        if( nz < 1 || nz > 5 || ny < 1 || ny > 5 || nx < 1 || nx > 5 || Visit[nz][ny][nx] ) continue;
+                        if( Map_result[nz][ny][nx] )
+                        {
+                                Visit[nz][ny][nx] = Visit[sz][sy][sx] +1;
+                                if( nz == 5 && ny == 5 && nx == 5 ) return Visit[nz][ny][nx] - 1;
+                                InQ(nz, ny, nx);
+                        }
+                }
+      }
+
+      return INF;
+}
+
+void InQ(int zz, int yy, int xx) { Que[Wp].z = zz;      Que[Wp].y = yy;      Que[Wp++].x = xx; }
+NODE * OutQ(void) { return &(Que[Rp++]); }
+
+void Print(void)
+{
+        if( min_move == INF ) min_move = -1;
+        printf("%d\n", min_move);
+}
+
+void Print_Map(void)
+{
+        int z, y, x;
+        printf("Print_Map\n");
+        for(z = 1; z <= 5; z++)
+        {
+                for(y = 1; y <= 5; y++)
+                {
+                        for(x = 1; x <= 5; x++)
+                        {
+                                printf("%d", Map_result[z][y][x]);
+                        }
+                        printf("\n");
+                }
+                printf("\n");
+        }
+}
+
+void Print_Chk(void)
+{
+        int i;
+        printf("Print_Chk\n");
+        for(i = 1; i <= 5; i++) printf("%d ", chk[i]);
+        printf("\n");
+}
+
+void Print_List(int L)
+{
+        int i;
+        printf("Print_List\n");
+        for(i = 1; i < L; i++) printf("%d ", List[i]);
+        printf("\n");
+}
+#endif
