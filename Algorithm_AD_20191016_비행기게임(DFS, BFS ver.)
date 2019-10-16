@@ -1,0 +1,350 @@
+// 20191016
+// 문제 A7: [TEST] 비행기 게임 - DFS ver.
+/*
+	* 모든 곳에 X가 깔려 있다고 한다면, 최대값이 음수가 나올 수도 있겠지?
+*/
+#if 0
+#include <stdio.h>
+#define MAX	(70)
+
+typedef struct { int y, x, flag; }NODE;
+NODE Enemy[MAX];
+
+void Input(void);
+void Operation(void);
+void Clear_5Row(int y);
+void DFS(int L, int y, int x, int score, int chk);
+int Check_Node(int y, int x, int chk);
+void Print(void);
+void Init_Struct(void);
+void Print_List(int L);
+void Print_Flag(void);
+
+int T;
+char Map[15][7];
+int dy[3] = { -1, -1, -1 };
+int dx[3] = { -1, 0, 1 };
+int enemy_cnt, coin;
+int coin_list[15];
+int enemy_list[15];
+int max_score;
+int flag;
+
+int main(void)
+{
+	int i;
+
+	//freopen("in.txt", "r", stdin);
+	scanf("%d", &T);
+	for (i = 1; i <= T; i++)
+	{
+		Input();
+		Operation();
+		Print();
+		Init_Struct();
+	}
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+	char tmp[7];
+
+	flag = 0;
+	enemy_cnt = coin = 0;		 max_score = -987654321;
+	for (i = 1; i <= 13; i++)
+	{
+		scanf("%s", tmp);
+		for (j = 1; j <= 5; j++)
+		{
+			Map[i][j] = tmp[j - 1];
+			if ( Map[i][j] == 'X' ) Enemy[++enemy_cnt] = (NODE){ i, j, 0 };
+			else if (Map[i][j] == '*') coin++;
+		}
+	}
+	coin *= 10;
+}
+
+void Operation(void)
+{
+	int i;
+
+	for (i = 8; i >= 1; i--)
+	{
+		Clear_5Row(i);
+		//Print_Flag();
+		DFS(1, 13, 3, 0, i);
+	}
+}
+
+void Clear_5Row(int y)
+{
+	int i;
+	int min_row = y;
+	int max_row = y + 4;
+	
+	for (i = 1; i <= enemy_cnt; i++)
+	{
+		if ( min_row <= Enemy[i].y && Enemy[i].y <= max_row ) Enemy[i].flag = y;
+	}
+}
+
+void DFS(int L, int y, int x, int score, int chk)
+{
+	int i, ny, nx;
+
+	if ( max_score >= score + (13 - L) * 10 ) return;
+	if ( flag ) return;
+	if (L > 12)
+	{
+		//Print_List(L);
+		//printf("y = %d, x = %d\n", y, x);
+		//printf("score = %d\n", score);
+		if ( max_score < score ) max_score = score;
+		if ( max_score == coin ) flag = 1;
+		return;
+	}
+
+	for (i = 0; i < 3; i++)
+	{
+		ny = y + dy[i];		nx = x + dx[i];
+		if ( nx < 1 || nx > 5 ) continue;
+		if ( Map[ny][nx] == '*' ) coin_list[L] = 10;
+		else if ( Map[ny][nx] == 'X' )
+		{
+			if ( Check_Node(ny, nx, chk) ) enemy_list[L] = -7;
+		}
+		DFS(L + 1, ny, nx, score + coin_list[L] + enemy_list[L], chk);
+		coin_list[L] = enemy_list[L] = 0;
+	}
+}
+
+int Check_Node(int y, int x, int chk)
+{
+	int i;
+
+	for (i = 1; i <= enemy_cnt; i++)
+	{
+		if ( Enemy[i].y == y && Enemy[i].x == x && Enemy[i].flag == chk ) return 0;	// 점수 안 달어
+	}
+	return 1;	// 점수 달어
+}
+
+void Print(void)
+{
+	/*
+	int i, j;
+
+	for (i = 1; i <= 13; i++)
+	{
+		for (j = 1; j <= 5; j++)
+		{
+			printf("%c", Map[i][j]);
+		}
+		printf("\n");
+	}
+	*/
+	printf("%d\n", max_score);
+}
+
+void Init_Struct(void)
+{
+	int i;
+
+	for (i = 1; i <= enemy_cnt; i++) Enemy[i] = (NODE){ 0, 0, 0 };
+}
+
+void Print_List(int L)
+{
+	int i;
+
+	printf("Print_List\n");
+	for (i = 1; i <= L; i++) printf("[score = %d, enemy = %d]  ", coin_list[i], enemy_list[i]);
+	printf("\n");
+}
+
+void Print_Flag(void)
+{
+	int i, j, k;
+
+	printf("Print_Flag\n");
+	for (i = 1; i <= 13; i++)
+	{
+		for (j = 1; j <= 5; j++)
+		{
+			if (Map[i][j] == 'X')
+			{
+				for (k = 1; k <= enemy_cnt; k++)
+				{
+					if ( Enemy[k].y == i && Enemy[k].x == j )
+					{
+						if (!Enemy[k].flag) printf("X");
+						else printf("%d", Enemy[k].flag);
+					}
+				}
+			}
+			else printf("%c", Map[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+#endif
+
+// BFS ver.
+#if 0
+#include <stdio.h>
+#define MAX	(65)
+#define INF	(0x80000000)
+
+typedef struct { int y, x; }NODE;
+NODE Que[MAX * MAX];
+
+void Input(void);
+void Set_Data(void);
+int BFS(int L);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+void Print(void);
+void Print_Map(void);
+
+int T;
+int Map[9][15][7];
+int Visit[9][15][7];
+int dy[3] = { -1, -1, -1 };
+int dx[3] = { -1, 0, 1 };
+int Wp, Rp;
+int max_score;
+
+int main(void)
+{
+	int i, j, r;
+
+	freopen("in.txt", "r", stdin);
+	scanf("%d", &T);
+	for (i = 1; i <= T; i++)
+	{
+		Input();
+		Set_Data();
+		//Print_Map();
+		for (j = 1; j <= 8; j++)
+		{
+			r = BFS(j);
+			if (max_score < r) max_score = r;
+		}
+		Print();
+	}
+
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+	char tmp[10];
+
+	for (i = 1; i <= 13; i++)
+	{
+		scanf("%s", &tmp[1]);
+		for (j = 1; j <= 5; j++)
+		{
+			if (tmp[j] == '*') Map[0][i][j] = 10;
+			else if (tmp[j] == 'X')	Map[0][i][j] = -7;
+			else Map[0][i][j] = 0;
+		}
+	}
+}
+
+void Set_Data(void)	// 폭탄이 터질 경우에 맞는 3차원 배열 세팅
+{
+	int k, i, j;
+
+	max_score = INF;
+	for (k = 1; k <= 8; k++)
+	{
+		for (i = 1; i <= 13; i++)
+		{
+			for (j = 1; j <= 5; j++)
+			{
+				Visit[k][i][j] = INF;			// Visit배열 초기화
+				Map[k][i][j] = Map[0][i][j];	// 맵 초기화
+			}
+		}
+	}
+
+	for (k = 1; k <= 8; k++)
+	{
+		for (i = k; i <= k + 4; i++)
+		{
+			for (j = 1; j <= 5; j++)
+			{
+				if (Map[k][i][j] == -7) Map[k][i][j] = 0;
+			}
+		}
+	}
+}
+
+int BFS(int L)
+{
+	NODE * out = (NODE *)0x0;
+	int i, sy, sx, ny, nx, max = INF, check;
+
+	Wp = Rp = 0;
+	InQ(13, 3);
+	Visit[L][13][3] = 0;
+	while (Wp > Rp)
+	{
+		out = OutQ();
+		sy = out->y;	sx = out->x;
+		if (sy == 1)
+		{
+			if (max < Visit[L][sy][sx]) max = Visit[L][sy][sx];
+			continue;
+		}
+		for (i = 0; i < 3; i++)
+		{
+			ny = sy + dy[i];		nx = sx + dx[i];
+			if (nx < 1 || nx > 5) continue;
+			check = Visit[L][sy][sx] + Map[L][ny][nx];
+			if (Visit[L][ny][nx] >= check) continue;
+			Visit[L][ny][nx] = check;
+			InQ(ny, nx);
+		}
+	}
+	//printf("max = %d\n", max);
+	return max;
+}
+
+void InQ(int yy, int xx)
+{
+	Que[Wp].y = yy;
+	Que[Wp++].x = xx;
+}
+
+NODE * OutQ(void) { return &(Que[Rp++]); }
+
+void Print(void) { printf("%d\n", max_score); }
+
+void Print_Map(void)
+{
+	int k, i, j;
+
+	printf("Print_Map\n");
+	for (k = 1; k <= 8; k++)
+	{
+		printf("[k = %d의 세계]\n", k);
+		for (i = 1; i <= 13; i++)
+		{
+			for (j = 1; j <= 5; j++)
+			{
+				printf("%3d ", Map[k][i][j]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+	}
+}
+#endif
