@@ -1,0 +1,255 @@
+// 20191016
+// 문제 A9: [TEST] 미사일
+#if 0
+#include <stdio.h>
+#define ABS(a) ( ( (a) < 0 ) ? -(a) : (a) )
+#define DIST(a, b, c, d)	( ( ABS( (a) - (b) ) ) + ( ABS( (c) - (d) ) ) )
+#define INF	(987654321)
+
+typedef struct { int y, x, Energy; }VS;
+VS vs[20];
+//VS vs2[20];
+
+void Input(void);
+//void Copy_VS(void);
+void DFS(int L);
+void Print(void);
+void Print_Injub(void);
+void Print_List(int L);
+
+int VS_cnt;
+int MS_cnt, MS_power, MS_Range;
+int Injub[20][20];
+int vcnt;
+int List[6];
+int min;
+
+int main(void)
+{
+	freopen("in.txt", "r", stdin);
+
+	Input();
+	//Print_Injub();
+	DFS(1);
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	min = INF;
+	scanf("%d", &VS_cnt);
+	vcnt = VS_cnt;
+	for (i = 1; i <= VS_cnt; i++)
+	{
+		scanf("%d %d %d", &vs[i].x, &vs[i].y, &vs[i].Energy);
+		for (j = 1; j < i; j++)
+		{
+			Injub[i][j] = Injub[j][i] = DIST(vs[i].y, vs[j].y, vs[i].x, vs[j].x);
+		}
+	}
+	scanf("%d %d %d", &MS_cnt, &MS_power, &MS_Range);
+}
+
+/*
+void Copy_VS(void)
+{
+	int i;
+
+	for (i = 1; i <= VS_cnt; i++) vs2[i] = vs[i];
+}
+*/
+
+void DFS(int L)
+{
+	int i, j;
+
+	if ( min == 0 ) return;
+	if ( L > MS_cnt )
+	{
+		//Print_List(L);
+		if ( min > vcnt ) min = vcnt;
+		return;
+	}
+	
+	for (i = 1; i <= VS_cnt; i++)
+	{
+		if (vs[i].Energy <= 0) continue;	// 이미 에너지가 다 떨어졌으므로 파괴되었음
+		for (j = 1; j <= VS_cnt; j++)
+		{
+			if ( Injub[i][j] > MS_Range ) continue;
+			if ( vs[j].Energy > 0 && vs[j].Energy <= MS_power ) vcnt--;
+			vs[j].Energy -= MS_power;
+		}
+		List[L] = i;
+		DFS(L + 1);
+		List[L] = 0;
+		for (j = 1; j <= VS_cnt; j++)
+		{
+			if ( Injub[i][j] > MS_Range ) continue;
+			if ( vs[j].Energy <= 0 && vs[j].Energy + MS_power > 0 ) vcnt++;
+			vs[j].Energy += MS_power;
+		}
+	}
+}
+
+void Print(void)
+{
+	printf("%d\n", min);
+}
+
+void Print_Injub(void)
+{
+	int i, j;
+
+	printf("Print_Injub\n");
+	for (i = 1; i <= VS_cnt; i++)
+	{
+		for (j = 1; j <= VS_cnt; j++)
+		{
+			printf("%4d", Injub[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
+void Print_List(int L)
+{
+	int i;
+
+	printf("Print_List\n");
+	for (i = 1; i < L; i++)
+	{
+		printf("%2d ", List[i]);
+	}
+	printf("\n");
+
+}
+#endif
+
+// Re
+#if 0
+#include <stdio.h>
+#define ABS(a) ( ( (a) < 0 ) ? -(a) : (a) )
+#define DIST(a, b, c, d)	( ( ABS( (a) - (b) ) ) + ( ABS( (c) - (d) ) ) )
+#define INF	(987654321)
+
+typedef struct { int y, x, Energy; }VS;
+VS vs[20];
+VS vs2[20];
+
+void Input(void);
+void Copy_VS(void);
+void DFS(int L);
+void Print(void);
+void Print_Injub(void);
+void Print_List(int L);
+
+int VS_cnt;
+int MS_cnt, MS_power, MS_Range;
+int Injub[20][20];
+int vcnt;
+int List[6];
+int min;
+
+int main(void)
+{
+	freopen("in.txt", "r", stdin);
+
+	Input();
+	Print_Injub();
+	DFS(1);
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	min = INF;
+	scanf("%d", &VS_cnt);
+	vcnt = VS_cnt;
+	for (i = 1; i <= VS_cnt; i++)
+	{
+		scanf("%d %d %d", &vs[i].x, &vs[i].y, &vs[i].Energy);
+		for (j = 1; j < i; j++)
+		{
+			Injub[i][j] = Injub[j][i] = DIST(vs[i].y, vs[j].y, vs[i].x, vs[j].x);
+		}
+	}
+	scanf("%d %d %d", &MS_cnt, &MS_power, &MS_Range);
+}
+
+void Copy_VS(void)
+{
+int i;
+
+for (i = 1; i <= VS_cnt; i++) vs2[i] = vs[i];
+}
+
+void DFS(int L)
+{
+	int i, j;
+
+	if (min == 0) return;
+	if (L > MS_cnt)
+	{
+		//Print_List(L);
+		if (min > vcnt) min = vcnt;
+		return;
+	}
+
+	for (i = 1; i <= VS_cnt; i++)
+	{
+		if (vs[i].Energy <= 0) continue;	// 이미 에너지가 다 떨어졌으므로 파괴되었음
+		List[L] = i;
+		DFS(L + 1);
+		List[L] = 0;
+	}
+}
+
+int Bomb(void)
+{
+
+}
+
+void Print(void)
+{
+	printf("%d\n", min);
+}
+
+void Print_Injub(void)
+{
+	int i, j;
+
+	printf("Print_Injub\n");
+	for (i = 1; i <= VS_cnt; i++)
+	{
+		for (j = 1; j <= VS_cnt; j++)
+		{
+			printf("%4d", Injub[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
+void Print_List(int L)
+{
+	int i;
+
+	printf("Print_List\n");
+	for (i = 1; i < L; i++)
+	{
+		printf("%2d ", List[i]);
+	}
+	printf("\n");
+
+}
+#endif
