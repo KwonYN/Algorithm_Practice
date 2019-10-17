@@ -1,0 +1,91 @@
+// 20191017
+// 문제 B3: [TEST] 상자 포장하기
+#if 0
+#include <stdio.h>
+
+void Input(void);
+void DFS(int L, int prevA, int sumA, int prevB, int sumB, int s_idx);
+void Print(void);
+
+int T, N;
+int Box[25];
+int chk[25];
+int ListA[25], ListB[25];
+int max_sum;
+int total_sum[25];
+
+int main(void)
+{
+	int t;
+
+	freopen("in.txt", "r", stdin);
+	scanf("%d", &T);
+	for (t = 1; t <= T; t++)
+	{
+		Input();
+		DFS(1, 1001, 0, 0, 0, 1);
+		Print();
+	}
+	
+	return 0;
+}
+
+
+void Input(void)
+{
+	int i, j, tmp;
+
+	max_sum = 0;
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++)
+	{
+		scanf("%d", &tmp);
+		Box[i] = tmp;
+		for (j = i; j <= N; j++)
+		{
+			total_sum[j] += tmp;
+		}
+	}
+	
+}
+
+void DFS(int L, int prevA, int sumA, int prevB, int sumB, int s_idx)
+{
+	int i;
+	//printf("L = %d, prevA = %d, sumA = %d, prevB = %d, sumB = %d, s_idx = %d\n",
+	//	L, prevA, sumA, prevB, sumB, s_idx);
+
+	if (sumA + sumB + total_sum[N - L + 1] <= max_sum) return;
+	if (L > N)
+	{
+		max_sum = total_sum[N];
+		return;
+	}
+	if (s_idx > N)
+	{
+		if (max_sum < sumA + sumB) max_sum = sumA + sumB;
+		return;
+	}
+
+	for (i = s_idx; i <= N; i++)
+	{
+		if (prevA > Box[i])
+		{
+			ListA[L] = Box[i];
+			DFS(L + 1, Box[i], sumA + Box[i], prevB, sumB, i + 1);
+			ListA[L] = 0;
+		}
+		if (prevB < Box[i])
+		{
+			ListB[L] = Box[i];
+			DFS(L + 1, prevA, sumA, Box[i], sumB + Box[i], i + 1);
+			ListB[L] = 0;
+		}
+	}
+}
+
+void Print(void)
+{
+	printf("%d\n", max_sum);
+}
+#endif
