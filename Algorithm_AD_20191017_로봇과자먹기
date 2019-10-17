@@ -1,0 +1,104 @@
+/*
+      난이도 평이
+      맨해튼 거리를 이용해 과자와 로봇 사이의 인접 배열을 만들어 주었으며, 
+       특히 "로봇 이동 중 타겟 과자나 로봇의 좌표를 들러도 무시하고 지나갈 수 있음!"이라는 조건 때문에 쉽게 풀 수 
+*/
+
+// 20191017
+// 문제 B2: [TST] 로봇 과자 먹기
+#if 0
+#include <stdio.h>
+#define ABS(a)				( ( (a) < 0 ) ? -(a) : (a) )
+#define DIST(a, b, c, d)	( ABS((a) - (b)) + ABS((c) - (d)) )
+#define INF					(987654321)
+
+typedef struct { int y, x; }NODE;
+NODE Robot[11], Snack[11];
+
+void Input(void);
+void DFS(int L, int sum);
+void Print(void);
+void Print_Injub(void);
+
+int T;
+int N;
+int Injub[11][11];
+int min_move;
+int chk[11], List[11];
+
+int main(void)
+{
+	int t;
+
+	freopen("in.txt", "r", stdin);
+	
+	scanf("%d", &T);
+	for (t = 1; t <= T; t++)
+	{
+		Input();
+		DFS(1, 0);
+		Print();
+		//Print_Injub();
+	}
+
+	return 0;
+}
+
+
+void Input(void)
+{
+	int i, j;
+
+	min_move = INF;
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++) scanf("%d %d", &Snack[i].y, &Snack[i].x);
+	for (i = 1; i <= N; i++)
+	{
+		scanf("%d %d", &Robot[i].y, &Robot[i].x);
+		for (j = 1; j <= N; j++)
+		{
+			Injub[i][j] = DIST(Robot[i].y, Snack[j].y, Robot[i].x, Snack[j].x);
+		}
+	}
+}
+
+void DFS(int L, int sum)
+{
+	int i;
+
+	if ( min_move <= sum ) return;
+	if (L > N)
+	{
+		if (min_move > sum) min_move = sum;
+		return;
+	}
+
+	for (i = 1; i <= N; i++)
+	{
+		if ( chk[i] ) continue;	// 이미 먹힌 과자라면 못 먹음
+		chk[i] = 1;		List[L] = i;
+		DFS(L + 1, sum + Injub[L][i]);
+		List[L] = 0;	chk[i] = 0;
+	}
+}
+
+void Print(void)
+{
+	printf("%d\n", min_move);
+}
+
+void Print_Injub(void)
+{
+	int i, j;
+	printf("Print_Injub\n");
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			printf("%2d ", Injub[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+#endif
