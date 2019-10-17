@@ -1,0 +1,338 @@
+// 이번에 푼 ver. (지난번 코드보다 오히려 메모리도 더 사용하고, 코드도 길 뿐만 아니라, 시간도 오래 걸림 ㅋㅋ)
+
+/*
+      일단, zero_flag를 Make_Operand 함수에서뿐만 아니라 BFS에서도 사용해줬음
+        - 어차피 0이 있다는 것은, 처음 Input 함수에서 0이 입력됐다는 의미이고
+          그렇기 때문에 end_flag에 의해 걸러질 것이기 때문에 BFS 함수 호출하기 전에 이미 답이 나와버림
+        - 그러므호 BFS에서 0을 꺼내는 것은 비효율적인 시간 낭비일 뿐!!
+      Greedy 기법!
+        - 최소 거리, 최단거리 등 최소값을 구해야 하는 문제에서 BFS를 사용한다면, Visit배열(여기에서는 Touch배열)에 INF 값으로 초기화를 해준 뒤,
+          Visit 체크를 할 때, 최소값(좋은 경험)으로 갱신해주는 작업을 하면 좋음!
+        - 그리고 보통 FF로 푸는 경우도 많으니 주의!
+*/
+
+#include <stdio.h>
+#define MAX		(1100)
+#define MAXQ	(MAX * MAX * 5)
+#define INF		(21)
+
+enum OPER { PLUS = 1, MINUS = 2, MULTI = 3, DIV = 4};
+
+void Input(void);
+void Make_Operand(void);
+int BFS(void);
+int Get_Num(int op, int a, int b);
+void Print_Operand(void);
+
+int T, N, O, M, W;
+int Num[MAX];
+int Oper[5];
+int Que[MAXQ];
+int Touch[MAX];
+int result;
+int Wp, Rp;
+int zero_flag;
+int end_flag;
+
+int main(void)
+{
+	int t, T;
+
+	//freopen("in.txt", "r", stdin);
+	scanf("%d", &T);
+	for (t = 1; t <= T; t++)
+	{
+		Input();
+		Make_Operand();
+		//Print_Operand();
+		if (end_flag)
+		{
+			printf("#%d %d\n", t, Touch[W]);
+			continue;
+		}
+		result = BFS();
+		if ( result >= M ) result = -1;
+		else result++;					// 마지막으로 = 연산자를 넣어줘야 하기 때문!!
+		printf("#%d %d\n", t, result);
+	}
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, num, tmp;
+
+	for (i = 0; i < 1000; i++) Touch[i] = INF;	// 최대 클릭 횟수가 20까지니 그것보다 큰 수로 초기화!
+
+	result = 0;
+	zero_flag = end_flag = 0;
+	scanf("%d %d %d", &N, &O, &M);
+	for (i = 0; i < N; i++)
+	{
+		scanf("%d", &num);
+		Num[i] = num;
+		Touch[ num ] = 1;
+		if (num == 0)
+		{
+			zero_flag = 1;	// 0을 Num[0]에 두기 위함!
+			tmp = Num[0];
+			Num[0] = Num[i];
+			Num[i] = tmp;
+		}
+	}
+	for (i = 1; i <= O; i++) scanf("%d", &Oper[i]);
+	scanf("%d", &W);
+}
+
+void Make_Operand(void)
+{
+	int k, i, j, tmp = 0;
+	int N_tmp = N;
+	// 두 자리수 만들기
+	for (i = zero_flag; i < N_tmp; i++)
+	{
+		tmp = Num[i];
+		for (j = 0; j < N_tmp; j++)
+		{
+			tmp *= 10;
+			tmp += Num[j];
+			Touch[ tmp ] = 2;
+			Num[N++] = tmp;
+			tmp /= 10;
+		}
+	}
+	// 세 자리수 만들기
+	for (k = zero_flag; k < N_tmp; k++)
+	{
+		tmp = Num[k];
+		for (i = 0; i < N_tmp; i++)
+		{
+			tmp *= 10;
+			tmp += Num[i];
+			for (j = 0; j < N_tmp; j++)
+			{
+				tmp *= 10;
+				tmp += Num[j];
+				Touch[ tmp ] = 3;
+				Num[N++] = tmp;
+				tmp /= 10;
+			}
+			tmp /= 10;
+		}
+	}
+
+	if (Touch[W] < 4) end_flag = 1;	// 혹시 그냥 터치만으로 숫자를 만들 수 있다면 그것이 최소!! (연산자 들어가는 순간 최소가 4번!!)
+}
+
+// 모든 숫자들에 대해서 터치 횟수 최소값을 저장해줌 in Touch 배열(단, = 연산자는 고려하지 않기에 M - 1개까지!)
+int BFS(void)
+{
+	int i, j, k, out, check, touch_check;
+
+	Wp = Rp = 0;
+	for (i = 0; i < N; i++) Que[Wp++] = Num[i];	// InQ
+	while (Wp > Rp)
+	{
+		out = Que[Rp++];	// OutQ
+		for (j = 0; j < N; j++)
+		{
+			for (k = 1; k <= O; k++)
+			{
+				check = Get_Num( Oper[k], out, Num[j] );
+				if (check < 0 || check > 999) continue;
+				touch_check = Touch[out] + Touch[ Num[j] ] + 1;	// 피연산자의 터치 횟수 + 연산자 터치 횟수
+				if ( touch_check > M - 1 ) continue;
+				if (Touch[ check ] > touch_check)
+				{
+					Touch[ check ] = touch_check;
+					Que[Wp++] = check;
+				}
+			}
+		}
+	}
+
+	//printf("Touch[%d] = %d\n", W, Touch[W]);
+	return Touch[W];
+}
+
+int Get_Num(int op, int a, int b)
+{
+	switch (op)
+	{
+		case PLUS: return a + b;
+		case MINUS:	return a - b;
+		case MULTI: return a * b;
+		default:
+			if (b == 0) return -1;
+			return a / b;
+	}
+	return -1;
+}
+
+void Print_Operand(void)
+{
+	int i;
+	printf("Print_Operand\n");
+	for (i = 0; i < N; i++)
+	{
+		printf("[%d] %3d ", Touch[Num[i]], Num[i]);
+	}
+	printf("\n");
+}
+
+
+// 이전 ver.
+#include <stdio.h>
+#define MAX (1100)
+ 
+void Input(void);
+void Init_Click(void);
+void Make_Num_Click(void);
+int Choose_One(int a, int b, int oper);
+int BFS(void);
+ 
+int T;
+int N, O, M, W;
+int click[MAX];
+int oper[5];
+int Q[MAX * MAX];
+int Wp, Rp;
+int Input_Num[MAX];
+int order;
+int Zero_Flag, flag;
+ 
+int main(void)
+{
+    int test_case, r;
+ 
+    setbuf(stdout, NULL);
+    scanf("%d", &T);
+ 
+    for (test_case = 1; test_case <= T; ++test_case)
+    {
+        Init_Click();
+        Input();
+        Make_Num_Click();
+        if (flag)
+        {
+            printf("#%d %d\n", test_case, click[W]);
+        }
+        else
+        {
+            r = BFS();
+            printf("#%d %d\n", test_case, ((r++ <= M) ? r : -1));
+        }
+    }
+ 
+    return 0;
+}
+ 
+void Init_Click(void)
+{
+    int i;
+ 
+    order = 0;  flag = 0;   Zero_Flag = 0;
+    for (i = 0; i <= MAX; i++) click[i] = 21;
+    for (i = 0; i <= O; i++) oper[i] = 0;
+}
+ 
+void Input(void)
+{
+    int i, tmp, ttmp;
+ 
+    scanf("%d %d %d", &N, &O, &M);
+    for (i = 0; i < N; i++)
+    {
+        scanf("%d", &tmp);
+        click[tmp] = 1;
+        Input_Num[order++] = tmp;
+    }
+    for (i = 0; i < N; i++)
+    {
+        if (Input_Num[i] == 0)
+        {
+            tmp = Input_Num[0];
+            Input_Num[0] = Input_Num[i];
+            Input_Num[i] = tmp;
+            Zero_Flag = 1;
+            break;
+        }
+    }
+    for (i = 1; i <= O; i++) scanf("%d", &oper[i]);
+    scanf("%d", &W);
+}
+ 
+void Make_Num_Click(void)
+{
+    int i, j, k;
+    int tmp;
+ 
+    // 두 자리수 만들기 by only 2 clicks
+    for (i = Zero_Flag; i < N; i++)
+    {
+        for (j = 0; j < N; j++)
+        {
+            tmp = Input_Num[i] * 10 + Input_Num[j];
+            click[tmp] = 2;
+            Input_Num[order++] = tmp;
+        }
+    }
+    // 세 자리수 만들기 by only 3 clicks
+    for (i = Zero_Flag; i < N; i++)
+    {
+        for (j = 0; j < N; j++)
+        {
+            for (k = 0; k < N; k++)
+            {
+                tmp = Input_Num[i] * 100 + Input_Num[j] * 10 + Input_Num[k];
+                click[tmp] = 3;
+                Input_Num[order++] = tmp;
+            }
+        }
+    }
+    if (click[W] <= M) flag = 1;
+}
+ 
+int BFS(void)
+{
+    int i, j, check;
+    int r, out, target;
+    Wp = Rp = 0;
+ 
+    for (i = Zero_Flag; i < order; i++) Q[Wp++] = Input_Num[i];
+ 
+    while (Wp > Rp)
+    {
+        out = Q[Rp++];
+        for (i = Zero_Flag; i < order; i++)
+        {
+            target = Input_Num[i];
+            for (j = 1; j <= O; j++)
+            {
+                r = Choose_One(out, target, oper[j]);
+                if (r <= 0 || r > 999) continue;
+                check = click[target] + click[out] + 1;
+                //if (check >= M) continue;
+                if (click[r] > check)
+                {
+                    click[r] = check;
+                    if(check >= M - 2) continue;
+                    Q[Wp++] = r;
+                }
+            }
+        }
+    }
+    return click[W];
+}
+ 
+int Choose_One(int a, int b, int op)
+{
+    switch (op)
+    {
+        case 1: return a + b;
+        case 2: return a - b;
+        case 3: return a * b;
+        default: return a / b;
+    }
+}
