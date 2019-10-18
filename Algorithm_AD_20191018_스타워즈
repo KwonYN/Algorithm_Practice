@@ -1,0 +1,111 @@
+/*
+    바로 인접한 정점끼리 가장 가깝다는 뜻은 아님!! 조금 돌아가도 더 가까울 수 있음. 환승해서 더 빨리 갈 수도 있잖아?
+*/
+// 20191018
+// 문제 B5: [TST] 스타워즈
+#if 01
+#include <stdio.h>
+#define MAX	(110)
+#define INF	(200)
+
+void Input(void);
+void Operation(void);
+int BFS(int s);
+void Print(void);
+
+int N, M, D;
+int Injub[MAX][MAX];
+int Que[MAX * 10];
+int max_def;
+int Wp, Rp;
+
+int main(void)
+{
+	freopen("in.txt", "r", stdin);
+	Input();
+	Operation();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+	int n1, n2, d;
+
+	scanf("%d %d %d", &N, &M, &D);
+	for (i = 1; i <= M; i++)
+	{
+		scanf("%d %d %d", &n1, &n2, &d);
+		Injub[n1][n2] = Injub[n2][n1] = d;
+	}
+}
+
+void Operation(void)
+{
+	int i, j, r;
+
+	max_def = 0;
+	for (i = 1; i <= N; i++)
+	{
+		r = BFS(i);
+		if ( max_def < r ) max_def = r;
+	}
+}
+
+int BFS(int s)
+{
+	int i, nn, check, cnt;
+	int Visit[MAX];
+
+	for (i = 1; i <= N; i++) Visit[i] = INF;
+	Wp = Rp = 0;
+	Que[Wp++] = s;
+	Visit[s] = 0;
+
+	while (Wp > Rp)
+	{
+		nn = Que[Rp++];
+		for (i = 1; i <= N; i++)
+		{
+			if ( Injub[nn][i] >= D || !Injub[nn][i] ) continue;
+			check = Visit[nn] + Injub[nn][i];
+			if (Visit[i] > check)
+			{
+				Visit[i] = check;
+				Que[Wp++] = i;
+			}
+		}
+	}
+
+	//for (i = 1; i <= N; i++) printf("%2d ", Visit[i]);
+	//printf("\n\n");
+	cnt = 0;
+	for (i = 1; i <= N; i++)
+	{
+		if (Visit[i] < D) cnt++;
+	}
+
+	return cnt;
+}
+
+
+void Print(void)
+{
+	/*
+	int i, j;
+	printf("Print_Injub\n");
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			printf("%2d ", Injub[i][j]);
+		}
+			printf("\n");
+	}
+	printf("\n");
+	*/
+	printf("%d\n", max_def);
+}
+#endif
