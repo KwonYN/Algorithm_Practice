@@ -1,0 +1,67 @@
+/*
+    백트레킹 중요!! - DFS 들어가기 전에 맵 복사해두고, 나중에 돌아오면 그 맵을 다시 복사해서 복구해줌
+    밑의 코드는 N_tmp와 N_tmptmp 변수를 활용하여 Board배열을 tmp 배열에 복사하고, 연산 후 다시 Board 배열에 재복사해주는 코드!
+*/
+void LEFT(void)
+{
+        int i, j;
+        int N_tmp, N_tmptmp;
+        int tmp[MAX] = { 0 };
+
+        for(i = 1; i <= N; i++)
+        {
+                N_tmp = N_tmptmp = 0;
+                // 1) 먼저 tmp 배열 초기화
+                for(j = 1; j <= N + 1; j++) tmp[j] = 0;
+                // 2) 0이 있으면 안되므로 일단 0을 제외하고 왼쪽으로 다 밀어줌
+                for(j = 1; j <= N; j++)
+                {
+                        if(Board[i][j] == 0) continue;
+                        tmp[++N_tmp] = Board[i][j];
+                }
+                // 3) 바로 다음 칸에 같은 수가 있는지 확인 후, 합쳐줌! (단, 한 번 합쳐진 애는 이번 턴에 다시 합려지지 않음!)
+                for(j = 1; j <= N_tmp; j++)
+                {
+                        if(tmp[j] == tmp[j + 1])
+                        {
+                                Board[i][++N_tmptmp] = tmp[j] << 1;
+                                j++;
+                        }
+                        else Board[i][++N_tmptmp] = tmp[j];
+                }
+                // 4) 마지막으로 합쳐졌으면 뒤에 있던 수가 그대로 남아있을 것이므로 0으로 비워줌
+                for(j = N_tmptmp + 1; j <= N; j++) Board[i][j] = 0;
+        }
+}
+
+void RIGHT(void)
+{
+        int i, j;
+        int N_tmp, N_tmptmp;
+        int tmp[MAX] = { 0 };
+
+        for(i = 1; i <= N; i++)
+        {
+                N_tmp = N_tmptmp = N + 1;
+                // 1) 먼저 tmp 배열 초기화
+                for(j = N; j >= 0; j--) tmp[j] = 0;
+                // 2) 0이 있으면 안되므로 일단 0을 제외하고 왼쪽으로 다 밀어줌
+                for(j = N; j >= 1; j--)
+                {
+                        if(Board[i][j] == 0) continue;
+                        tmp[--N_tmp] = Board[i][j];
+                }
+                // 3) 바로 다음 칸에 같은 수가 있는지 확인 후, 합쳐줌! (단, 한 번 합쳐진 애는 이번 턴에 다시 합려지지 않음!)
+                for(j = N; j >= N_tmp; j--)
+                {
+                        if(tmp[j] == tmp[j - 1])
+                        {
+                                Board[i][--N_tmptmp] = tmp[j] << 1;
+                                j--;
+                        }
+                        else Board[i][--N_tmptmp] = tmp[j];
+                }
+                // 4) 마지막으로 합쳐졌으면 뒤에 있던 수가 그대로 남아있을 것이므로 0으로 비워줌
+                for(j = N_tmptmp - 1; j >= 1; j--) Board[i][j] = 0;
+        }
+}
