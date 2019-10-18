@@ -1,0 +1,261 @@
+// 20191018
+// [BOJ. 16988] Baaaaaaaaaduk2 (Easy)
+/*
+        돌을 한 개씩 두는 것이 아니라 두 개씩 둠!
+        상하좌우 인접한 같은 색 돌의 집합을 그룹이라고 함!
+        자신의 돌로 상대방의 돌의 그룹을 빈틈 없이 가두면 죽일 수 있음!
+        빈틈이 없다는 것은 그 그룹 내 빈칸과 인접한 돌이 하나도 없다는 것!
+        모든 비어있는 칸에 돌을 놓을 수 있음! - 스스로 갇혀 잡힌다고 하더라도! But, 내가 놨는데 상대방 돌 그룹 인접 빈칸이 없다? 그럼 내가 상대방 돌 죽이는 것!!!
+        돌 2개를 두어 상대방의 돌을 최대한 많이 죽이게끔!
+        
+        =>
+        1) 적의 바둑의 그룹을 넘버링 ★using BFS(여기에서는 Make_Island 함수 :인자로 int num로 넘버링할 숫자를 넘기고, 그 숫자로 넘버링을 해줌)★
+        2) DFS를 통해 조합 만들어 맵의 그 부분을 1, 즉 나의 돌로 만들어줌
+        3) BFS함수 : ★여기에서 중요한 것은 Make_Island 호출 전에 Operation 함수에서 이중 for문을 돌며 InQ해주는 부분을 기록해줬다는 것! 그래서 이 BFS 함수에서도 그 부분만 InQ 해주면 되고,
+                     BFS 함수에서 인접 체크를 하며 가되, 하나라도 Board[ny][nx]가 0, 즉 빈 공간이 발견되면, 그 부분을 해주지 않기 위해서 break or continue 시켜줌!!★
+                   ★ 거기에 더해서 DFS 조합 성공 시, BFS 함수를 호출하는 것이므로 혹시나 인접 0이 없는, 즉 죽게 된 돌들을 다 cnt해주고 return해줌. 그 "경우"의 최대 죽은 돌이 바로 이 리턴 값!!★
+*/
+#if 01
+#include <stdio.h>
+#define MAX     (25)
+
+typedef struct { int y, x; }NODE;
+NODE space[MAX * MAX];
+NODE enemy[MAX * MAX];
+NODE List[3];
+NODE Que[MAX * MAX * MAX];
+
+void Input(void);
+void Operation(void);
+void Make_Island(int sy, int sx, int num);
+void DFS(int L, int s_idx);
+int BFS(void);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+void Init_Visit(void);
+void Print(void);
+void Print_List(int L);
+void Print_Map(void);
+void Print_Island(void);
+
+int N, M;       // 3 ~ 20
+int Board[MAX][MAX];    // 0 : 빈칸, 1 : 나의 돌, 2 : 상대의 돌
+int space_cnt;
+int enemy_cnt;
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int Wp, Rp;
+int Island[MAX][MAX];
+int Visit[MAX][MAX];
+int max_num;
+
+int main(void)
+{
+        Input();
+        Operation();
+        //Print_Island();
+        DFS(1, 1);
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        max_num = 0;
+        space_cnt = 0;
+        scanf("%d %d", &N, &M);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        scanf("%d", &Board[i][j]);
+                        if( Board[i][j] == 0 ) space[++space_cnt] = (NODE){ i, j };
+                        //else if( Board[i][j] == 2 ) enemy[++enemy_cnt] = (NODE){ i, j };
+                }
+        }
+}
+
+void Operation(void)
+{
+        int i, j;
+
+        enemy_cnt = 0;
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        if( Board[i][j] == 2 && Island[i][j] == 0 )
+                        {
+                                enemy[++enemy_cnt] = (NODE){ i, j };
+                                Make_Island(i, j, enemy_cnt);
+                        }
+                }
+        }
+}
+
+void Make_Island(int sy, int sx, int num)
+{
+        NODE * out = (NODE *)0x0;
+        int i, ny, nx;
+
+        Wp = Rp = 0;
+        InQ(sy, sx);
+        Island[sy][sx] = num;
+        while(Wp > Rp)
+        {
+                out = OutQ();
+                sy = out->y;    sx = out->x;
+                for(i = 0; i < 4; i++)
+                {
+                        ny = sy + dy[i];        nx = sx +dx[i];
+                        if( ny < 1 || ny > N || nx < 1 || nx > M || Island[ny][nx] ) continue;
+                        if( Board[ny][nx] == 2 )
+                        {
+                                InQ(ny, nx);
+                                Island[ny][nx] = num;
+                        }
+                }
+        }
+}
+
+void DFS(int L, int s_idx)
+{
+        int i, r;
+
+        if(L > 2)
+        {
+                //Print_List(L);
+                //Print_Map();
+                Init_Visit();
+                r = BFS();
+                if(max_num < r) max_num = r;
+                return;
+        }
+
+        for(i = s_idx; i <= space_cnt; i++)
+        {
+                List[L] = space[i];     Board[space[i].y][space[i].x] = 1;
+                DFS(L + 1, i + 1);
+                Board[space[i].y][space[i].x] = 0;      List[L] = (NODE){ 0, 0 };
+        }
+}
+
+int BFS(void)
+{
+        NODE * out = (NODE *)0x0;
+        int s, i, sy, sx, ny, nx;
+        int flag, cnt, max = 0;
+
+        for(s = 1; s <= enemy_cnt; s++)
+        {
+                Wp = Rp = flag = cnt = 0;
+                sy = enemy[s].y;        sx = enemy[s].x;
+                //printf("s.y = %d, s.x = %d\n", sy,sx);
+                if( Visit[sy][sx] == Island[sy][sx] ) continue;
+                InQ(sy, sx);
+                Visit[sy][sx] = Island[sy][sx];
+                cnt = 1;
+                while(Wp > Rp)
+                {
+                        //printf("Wp = %d, Rp = %d\n", Wp, Rp);
+                        out = OutQ();
+                        sy = out->y;    sx = out->x;
+                        for(i = 0; i < 4; i++)
+                        {
+                                ny = sy + dy[i];        nx = sx + dx[i];
+                                if( ny < 1 || ny > N ||nx < 1 || nx > M || Visit[ny][nx] ) continue;
+                                if( Board[ny][nx] == 0 )
+                                {
+                                        flag = 1;
+                                        break;
+                                }
+                                if( Board[ny][nx] == 2 )        // 0 아니고 2 아니면 1이겠지? 여기서 카운트가 된다는 것은 잡혔다는 의미!
+                                {
+                                        Visit[ny][nx] = Island[ny][nx];
+                                        cnt++;
+                                        //printf("in BFS cnt = %d\n", cnt);
+                                        InQ(ny, nx);
+                                }
+                        }
+                        if( flag ) break;
+                }
+                //printf("flag = %d\n", flag);
+                if( flag ) continue;
+                else
+                {
+                        //printf("cnt = %d\n", cnt);
+                        //getch();
+                        max += cnt;
+                        //if(max < cnt) max = cnt;
+                }
+        }
+
+        return max;
+}
+
+void InQ(int yy, int xx) { Que[Wp++] = (NODE){yy, xx}; }
+NODE * OutQ(void) { return &(Que[Rp++]); }
+
+void Init_Visit(void)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        Visit[i][j] = 0;
+                }
+        }
+}
+
+void Print(void)
+{
+        printf("%d\n", max_num);
+}
+
+
+void Print_List(int L)
+{
+        int i;
+        printf("Print_List\n");
+        for(i = 1; i < L; i++)
+        {
+                printf("List[%d].y = %d, List[%d].y = %d\n", i, List[i].y, i, List[i].x);
+        }
+        printf("\n");
+}
+
+void Print_Map(void)
+{
+        int i, j;
+        printf("Print_Board\n");
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        printf("%d ", Board[i][j]);
+                }
+                printf("\n");
+        }
+        printf("\n");
+}
+
+void Print_Island(void)
+{
+        int i, j;
+        printf("Print_Island\n");
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= M; j++)
+                {
+                        printf("%d ", Island[i][j]);
+                }
+                printf("\n");
+        }
+        printf("\n");
+}
+#endif
