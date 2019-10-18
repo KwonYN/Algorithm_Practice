@@ -1,0 +1,162 @@
+// 20191018
+// 문제 B6: [TEST] 가스관
+/*
+		파이프 "하나"가 비었다고 문제의 조건에 나와있음.
+		우선 M과 Z의 위치는 파이프에 당연히 연결이 되어 있을 것인데, 어느 방향으로 연결되어 있는지 몰라.
+		그래서 '+'로 봐주고 어디랑 연결이 되었는지 보아줄 것!
+		그런데 문제는 원래 연결되어 있어야 하는 부분뿐만 아니라 나머지 세 방향도 연결이 되어야 한다고 인식을 해주지 않아야 할 때!!
+		하지만, 문제에서 중요한 것은 하나가 비었고, 그것은 필연적으로 다른 파이프 2개 이상과 연결이 되어야 함!!
+		(M과 Z가 빠지면 안 될것이기 때문!!)
+		근데 Z와 M과 연결이 되었는데 다른 파이프와 연결이 안 되었다면, 즉 한 부분만 연결이 되었다면 그것을 답으로 골라주면 안되기 때문에
+		Check 함수에서 .을 리턴하였음!! 걔는 그냥 빈 칸이라고.
+		★★★★★ 파이프는 모두 연결되어 있어야 하므로 주변에 2개 이상의 파이프가 분명 있다!! ★★★★★
+*/
+#if 01
+#include <stdio.h>
+#define MAX	(30)
+
+void Input(void);
+void Operation(void);
+char Check(int num);
+void Print(void);
+
+int T, R, C;
+int Map[MAX][MAX];
+int Visit[MAX][MAX];
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+int cur[9] = { 0, 4, 8, 0, 1, 0, 0, 0, 2 };
+int next[4] = { 4, 1, 8, 2 };
+int Wp, Rp;
+int cy, cx, cs;
+char r;
+
+int main(void)
+{
+	int t;
+
+	freopen("in.txt", "r", stdin);
+
+	scanf("%d", &T);
+	for (t = 1; t <= T; t++)
+	{
+		Input();
+		Operation();
+		Print();
+	}
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j, c;
+	char tmp[MAX];
+
+	scanf("%d %d", &R, &C);
+	for (i = 1; i <= R; i++)
+	{
+		scanf("%s", &tmp[1]);
+		for (j = 1; j <= C; j++)
+		{
+			switch (tmp[j])
+			{
+				case 'M':
+					c = 0xF;
+					break;
+				case 'Z':
+					c = 0xF;
+					break;
+				case 124:
+					c = 0x5;
+					break;
+				case '-':
+					c = 0xA;
+					break;
+				case '+':
+					c = 0xF;
+					break;
+				case '1':
+					c = 0xC;
+					break;
+				case '2':
+					c = 0x9;
+					break;
+				case '3':
+					c = 0x3;
+					break;
+				case '4':
+					c = 0x6;
+					break;
+				default:
+					c = 0x0;
+					break;
+			}
+			Map[i][j] = c;
+		}
+	}
+}
+
+void Operation(void)
+{
+	int i, j, d;
+	int ny, nx, check;
+
+	for (i = 1; i <= R; i++)
+	{
+		for (j = 1; j <= C; j++)	// 정점
+		{
+			if ( Map[i][j] == 0 )		// 근데 그 점이 '.'으로 표시가 되어 있다면?
+			{
+				cs = 0;
+				for (d = 0; d < 4; d++)
+				{
+					ny = i + dy[d];		nx = j + dx[d];
+					if (ny < 1 || ny > R || nx < 1 || nx > C) continue;
+					cs += ( cur[ Map[ny][nx] & next[d] ] );
+					//printf("Map[%d][%d] & next[%d] = %d\n", ny, nx, d, Map[ny][nx] & next[d]);
+				}
+				r = Check(cs);
+				if ( r != '.' )
+				{
+					cy = i;		cx = j;
+					//printf("cs = %d\n", cs);
+					return;
+				}
+			}
+		}
+	}
+}
+
+char Check(int num)
+{
+	switch ( num )
+	{
+		case 3: return '3';
+		case 5: return 124;
+		case 6: return '4';
+		case 9: return '2';
+		case 0xA: return '-';
+		case 0xC: return '1';
+		case 0xF: return '+';
+		default: return '.';
+	}
+}
+
+void Print(void)
+{
+	/*
+	int i, j;
+	printf("Print_Map\n");
+	for (i = 1; i <= R; i++)
+	{
+		for (j = 1; j <= C; j++)
+		{
+			printf("%2X " , Map[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+	*/
+	printf("%d %d %c\n", cy, cx, r);
+}
