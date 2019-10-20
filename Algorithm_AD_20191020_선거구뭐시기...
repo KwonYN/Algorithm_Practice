@@ -1,0 +1,339 @@
+// 20191020
+// 선거구 뭐시기..
+/*
+1
+8
+12 15 8 4 13 17 45 69
+1 53 48 12 25 65 12 56
+52 69 87 41 23 78 56 41
+25 1 3 66 55 87 89 63
+51 1 53 65 74 8 9 32
+12 23 45 56 78 89 45 23
+22 66 77 52 45 98 63 21
+12 54 87 56 2 66 98 5
+*/
+#if 0
+#include <stdio.h>
+#define MAX     (25)
+#define INF     (987654321)
+
+typedef struct { int y, x; }NODE;
+NODE List[5];
+
+void Input(void);
+void Operation(void);
+void DFS(int L, int y, int x);
+void Init_Visit(void);
+
+void Print_Map(void);
+void Print_List(int L);
+void Print_Visit(void);
+
+int T, N;
+int Map[MAX][MAX];
+int Visit[MAX][MAX];
+int min_diff;
+int dy[5] = { 0, 1, 1, -1, -1 };
+int dx[5] = { 0, 1, -1, -1, 1 };
+int sy, sx;
+int total_sum;
+
+int main(void)
+{
+        int i;
+
+        scanf("%d", &T);
+        for(i = 1; i <= T; i++)
+        {
+             Input();
+             Operation();
+             /*
+             Print_Map();
+             Print_Visit();
+             */
+             printf("#%d %d\n", i, min_diff);
+        }
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        total_sum = 0;
+        scanf("%d", &N);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        scanf("%d", &Map[i][j]);
+                        total_sum += Map[i][j];
+                }
+        }
+}
+
+void Operation(void)
+{
+        int i, j;
+
+        min_diff = INF;
+        for(i = 1; i < N; i++)
+        {
+                for(j = 2; j < N; j++)
+                {
+                        //Init_Visit();
+                        sy = i;         sx = j;
+                        List[1] = (NODE) {i, j};
+                        Visit[sy][sx] = 1;
+                        DFS(1, sy, sx);
+                        Visit[sy][sx] = 0;
+                        List[1] = (NODE) {0, 0};
+                }
+        }
+}
+
+void DFS(int L, int y, int x)
+{
+        int ny, nx, r;
+
+        if(min_diff == 0) return;
+        if(L > 1 && y <= sy) return;
+        //if(L >= 5) return;
+        if(L >= 4)
+        {
+                if(y == sy + 1 && x == sx - 1)
+                {
+                        r = Get_Cnt();
+                        if(min_diff > r) min_diff = r;
+                        /*
+                        printf("r = %d\n", r);
+                        Print_List(L);
+                        Print_Visit();
+                        getch();
+                        */
+                        return;
+                }
+        }
+
+        ny = y + dy[L];         nx = x + dx[L];
+        if( ny < 1 || ny > N || nx < 1 || nx > N || Visit[ny][nx] ) return;
+        Visit[ny][nx] = 1;
+        DFS(L, ny, nx);
+        Visit[ny][nx] = 0;
+
+        List[L + 1] = (NODE) { ny, nx };
+        Visit[ny][nx] = 1;
+        DFS(L + 1, ny, nx);
+        Visit[ny][nx] = 0;
+        List[L + 1] = (NODE) { 0, 0 };
+}
+
+void Init_Visit(void)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++) for(j = 1; j <= N; j++) Visit[i][j] = 0;
+}
+
+int Get_Cnt(void)
+{
+        int i, j;
+        int min = INF, max = 0;
+        int cnt[6] = { 0 };
+        //int Visit2[MAX][MAX] = { 0 };
+
+        for(i = 1; i < List[4].y; i++)
+        {
+                for(j = 1; j <= List[1].x; j++)
+                {
+                        if(Visit[i][j]) break;
+                        cnt[1] += Map[i][j];
+                }
+        }
+        for(i = List[4].y; i <= N; i++)
+        {
+                for(j = 1; j < List[3].x; j++)
+                {
+                        if(Visit[i][j]) break;
+                        cnt[2] += Map[i][j];
+                }
+        }
+        for(i = 1; i <= List[2].y; i++)
+        {
+                for(j = N; j > List[1].y; j--)
+                {
+                        if(Visit[i][j]) break;
+                        cnt[3] += Map[i][j];
+                }
+        }
+        for(i = N; i > List[2].y; i--)
+        {
+                for(j = N; j >= List[3].x; j--)
+                {
+                        if(Visit[i][j]) break;
+                        cnt[4] += Map[i][j];
+                }
+        }
+        cnt[5] = total_sum - cnt[1] - cnt[2] - cnt[3] - cnt[4];
+        /*
+        cnt[1] = 0;
+        for(i = 1; i < List[1].y; i++)
+        {
+                for(j = 1; j <= List[1].x; j++)
+                {
+                        cnt[1] += Map[i][j];
+                        Visit2[i][j] = 2;
+                }
+        }
+        for(i = List[1].y; i < List[4].y; i++ )
+        {
+                for(j = 1; ; j++)
+                {
+                        if(Visit[i][j]) break;
+                        cnt[1] += Map[i][j];
+                        Visit2[i][j] = 3;
+                }
+        }
+
+        cnt[2] = 0;
+        for(i = List[4].y; i <= List[3].y; i++)
+        {
+                for(j = 1; ; j++)
+                {
+                        if(Visit[i][j]) break;
+                        cnt[2] += Map[i][j];
+                        Visit2[i][j] = 4;
+                }
+        }
+        for(i = List[3].y + 1; i <= N; i++)
+        {
+                for(j = 1; j < List[3].x; j++)
+                {
+                        cnt[2] += Map[i][j];
+                        Visit2[i][j] = 5;
+                }
+        }
+
+        cnt[3] = 0;
+        for(i = 1; i < List[1].y; i++)
+        {
+                for(j = List[1].x + 1; j <= N; j++)
+                {
+                        cnt[3] += Map[i][j];
+                        Visit2[i][j] = 6;
+                }
+        }
+        for(i = List[1].y; i <= List[2].y; i++)
+        {
+                for(j = N; ; j--)
+                {
+                        if(Visit[i][j])break;
+                        cnt[3] += Map[i][j];
+                        Visit2[i][j] = 7;
+                }
+        }
+
+        cnt[4] = 0;
+        for(i = List[3].y + 1; i <= N; i++)
+        {
+                for(j = List[3].x; j <= N; j++)
+                {
+                        cnt[4] += Map[i][j];
+                        Visit2[i][j] = 8;
+                }
+        }
+        for(i = List[2].y + 1; i <= List[3].y; i++)
+        {
+                for(j = N; ; j--)
+                {
+                        if(Visit[i][j]) break;
+                        cnt[4] += Map[i][j];
+                        Visit2[i][j] = 9;
+                }
+        }
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        if(Visit2[i][j]) continue;
+                        cnt[5] += Map[i][j];
+                }
+        }
+        */
+
+        /*
+        printf("Print_Visit2\n");
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        printf("%d ", Visit2[i][j]);
+                }
+                printf("\n");
+        }
+        printf("\n");
+
+
+        printf("Print_Cnt\n");
+        for(i = 1; i <= 5; i++)
+        {
+                printf("%3d ", cnt[i]);
+        }
+        printf("\n");
+        */
+        for(i = 1; i <= 5; i++)
+        {
+                if(max < cnt[i]) max = cnt[i];
+                if(min > cnt[i]) min = cnt[i];
+        }
+        /*
+        for(i = 1; i <= 5; i++)
+        {
+                printf("[cnt[%d]] %d  ", i, cnt[i]);
+        }
+        printf("\nmax = %d // min = %d\n", max,min);
+        */
+
+        return (max - min);
+}
+
+void Print_Map(void)
+{
+        int i, j;
+        printf("Print_Map\n");
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        printf("%2d ", Map[i][j]);
+                }
+                printf("\n");
+        }
+        printf("\n");
+}
+
+void Print_List(int L)
+{
+        int i;
+        printf("Print_List\n");
+        for(i = 1; i <= L; i++) printf("[Vertex:%d], y = %d, x = %d\n", i, List[i].y,   List[i].x);
+        printf("\n");
+}
+
+void Print_Visit(void)
+{
+        int i, j;
+        printf("Print_Visit\n");
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        printf("%d ", Visit[i][j]);
+                }
+                printf("\n");
+        }
+        printf("\n");
+}
+#endif
