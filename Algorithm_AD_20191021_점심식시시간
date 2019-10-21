@@ -1,0 +1,159 @@
+// 20191021
+// [SWEA. 2383] [모의 SW 역량테스트] 점심 식사시간
+#if 01
+#include <stdio.h>
+#define INF	(987654321)
+#define ABS(a)	( ( (a) < 0 ) ? -(a) : (a) )
+#define DIST(a, b, c, d)	( (ABS( (a) - (b) )) + (ABS( (c) - (d) )) )
+
+typedef struct { int y, x; }PERSON;
+PERSON P[11];
+
+typedef struct { int y, x, len; }STEP;
+STEP S[3];
+
+void Input(void);
+void DFS(int L, int cnt_A, int cnt_B, int s_idx);
+
+void Print_List(int cnt_A, int cnt_B);
+
+int T, N;
+int Class[12][12];
+int p_cnt, s_cnt;
+int min_min;
+int ListA[12], ListB[12];
+
+int main(void)
+{
+	int i;
+
+	freopen("in.txt", "r", stdin);
+	scanf("%d", &T);
+	for (i = 1; i <= T; i++)
+	{
+		Input();
+		DFS(1, 0, 0, 1);
+
+		printf("#%d %d\n", i, min_min);
+	}
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	min_min = INF;
+	p_cnt = s_cnt = 0;
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%d", &Class[i][j]);
+			if (Class[i][j] == 1) P[++p_cnt] = (PERSON){ i, j }; 
+			else if (Class[i][j] > 1) S[++s_cnt] = (STEP){ i, j, Class[i][j] };
+		}
+	}
+}
+
+void DFS(int L, int cnt_A, int cnt_B, int s_idx)
+{
+	int i, rA, rB, max;
+
+	if (L > p_cnt)
+	{
+		Print_List(cnt_A, cnt_B);
+		getch();
+		rA = Get_Time_A(cnt_A);
+		rB = Get_Time_B(cnt_B);
+		max = (rA < rB) ? rB : rA;
+		if (min_min > max) min_min = max;
+		return;
+	}
+
+	for (i = s_idx; i <= p_cnt; i++)
+	{
+		ListA[++cnt_A] = i;
+		DFS(L + 1, cnt_A, cnt_B, i + 1);
+		ListA[cnt_A--] = 0;
+
+		ListB[++cnt_B] = i;
+		DFS(L + 1, cnt_A, cnt_B, i + 1);
+		ListB[cnt_B--] = 0;
+	}
+}
+
+int Get_Time_A(int cnt_A)
+{
+	int i, j, tmp;
+	int stepA[12], use[4];
+	int s, e, time;
+
+	for (i = 1; i <= cnt_A; i++) stepA[i] = DIST(P[ListA[i]].y, S[1].y, P[ListA[i]].x, S[1].x) + 1;
+
+	for (i = 1; i < cnt_A; i++)
+	{
+		for (j = i + 1; j <= cnt_A; j++)
+		{
+			if (stepA[i] > stepA[j])
+			{
+				tmp = stepA[i];
+				stepA[i] = stepA[j];
+				stepA[j] = tmp;
+			}
+		}
+	}
+
+	s = e = 0;
+	for (i = 1; i <= cnt_A; i++)
+	{
+		if (e < s + 3) e++;
+		for (j = s + 1; j <= e; j++)
+		{
+			if (stepA[j] >= time)
+			{
+
+			}
+		}
+		
+	}
+}
+
+int Get_Time_B(int cnt_B)
+{
+	int i, j, tmp;
+	int stepB[12];
+	int s, e, time;
+
+	for (i = 1; i <= cnt_B; i++) stepB[i] = DIST(P[ListB[i]].y, S[2].y, P[ListB[i]].x, S[2].x) + 1;
+
+	for (i = 1; i < cnt_B; i++)
+	{
+		for (j = i + 1; j <= cnt_B; j++)
+		{
+			if (stepB[i] > stepB[j])
+			{
+				tmp = stepB[i];
+				stepB[i] = stepB[j];
+				stepB[j] = tmp;
+			}
+		}
+	}
+
+	time = s = e = 0;
+
+}
+
+void Print_List(int cnt_A, int cnt_B)
+{
+	int i;
+	printf("Print_List\n");
+	for (i = 1; i <= cnt_A; i++) printf("%d ", ListA[i]);
+	printf("\n");
+	for (i = 1; i <= cnt_B; i++) printf("%d ", ListB[i]);
+	printf("\n");
+}
+
+#endif
