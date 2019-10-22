@@ -1,0 +1,134 @@
+// 20191022
+// [SWEA. 1949] [모의 SW 역량테스트] 등산로 조성
+#if 01
+#include <stdio.h>
+#define MAX	(10)
+
+typedef struct { int y, x, h; }SUMMIT;
+SUMMIT Top[6];
+
+int T, N, K;
+int Mountain[MAX][MAX];
+int summit_cnt;
+int Visit[MAX][MAX];
+int max_dist;
+int dy[4] = { -1, 1, 0, 0 };
+int dx[4] = { 0, 0, -1, 1 };
+
+void Input(void);
+void Operation(void);
+void DFS(int L, int y, int x, int distroy_flag);
+
+
+void Print_Summit(int cnt);
+
+int main(void)
+{
+	int i;
+
+	freopen("in.txt", "r", stdin);
+	scanf("%d", &T);
+	for (i = 1; i <= T; i++)
+	{
+		Input();
+		//Print_Summit(summit_cnt);
+		Operation();
+
+		printf("#%d %d\n", i, max_dist);
+	}
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j, max;
+
+	summit_cnt = max = 0;
+	scanf("%d %d", &N, &K);
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			scanf("%d", &Mountain[i][j]);
+			if (max < Mountain[i][j]) max = Mountain[i][j];
+		}
+	}
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= N; j++)
+		{
+			if (Mountain[i][j] == max)
+			{
+				Top[++summit_cnt] = (SUMMIT){ i, j, Mountain[i][j] };
+			}
+		}
+	}
+}
+
+void Operation(void)
+{
+	int i, y, x;
+
+	max_dist = 0;
+	for (i = 1; i <= summit_cnt; i++)
+	{
+		y = Top[i].y;		x = Top[i].x;
+		Visit[y][x] = 1;
+		DFS(1, y, x, 0);
+		Visit[y][x] = 0;
+	}
+}
+
+void DFS(int L, int y, int x, int distroy_flag)
+{
+	int i, ny, nx, check, cnt, tmp;
+
+	cnt = 0;
+	for (i = 0; i < 4; i++)
+	{
+		ny = y + dy[i];		nx = x + dx[i];
+		check = Mountain[ny][nx] - Mountain[y][x];
+		if (ny < 1 || ny > N || nx < 1 || nx > N || Visit[ny][nx] || ((check >= 0) && distroy_flag == 1) || check >= K)
+		{
+			if (++cnt == 4)
+			{
+				if (max_dist < L) max_dist = L;
+				//printf("max_dist = %d\n", max_dist);
+				return;
+			}
+			continue;
+		}
+		/*
+		printf("[L = %d] ny = %d, nx = %d, flag = %d\n", L, ny, nx, distroy_flag);
+		getch();
+		*/
+		if (check <= K && check >= 0 && distroy_flag == 0)
+		{
+			tmp = Mountain[ny][nx];
+			Mountain[ny][nx] = Mountain[y][x] - 1;	distroy_flag = 1;
+			Visit[ny][nx] = 1;
+			DFS(L + 1, ny, nx, distroy_flag);
+			Visit[ny][nx] = 0;
+			Mountain[ny][nx] = tmp;	distroy_flag = 0;
+		}
+		else
+		{
+			Visit[ny][nx] = 1;
+			DFS(L + 1, ny, nx, distroy_flag);
+			Visit[ny][nx] = 0;
+		}
+	}
+}
+
+void Print_Summit(int cnt)
+{
+	int i;
+
+	for (i = 1; i <= cnt; i++)
+	{
+		printf("[%d] y = %d, x = %d => Height = %d\n", i, Top[i].y, Top[i].x, Top[i].h);
+	}
+	printf("\n");
+}
+#endif
