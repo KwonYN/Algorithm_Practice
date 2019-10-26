@@ -1,0 +1,200 @@
+// 20191020 삼성 코테 1번 문제
+//  20191026
+// [BOJ. 17779] 게리맨더링2
+/*
+      일단, Visit을 1로 만들면서 마름모 형태를 만드는데 꼬여버렸음.
+      그리고 구조체 List를 요소가 5개, 즉 0 ~ 4로 만들면,
+        DFS에서 두 번째( DFS(L + 1, ... ) ) 이 부분에서 List[5]에 값을 넣어주려고 하기 때문에 문제가 생김..!!
+      => Visit이 왜 제대로 안 찍히는지 시간 두고 천천히 getch();를 활용하여 찍어야겠다.
+         그리고 DFS 내에서 무조건 for문을 활용하려고만 생각하지 말고, 인자로 y, x를 주고, ny, nx(임시 변수)를 이용하여 내부에서 y, x 갱신하기
+         무엇보다도 항상 배열의 요소를 넉넉하게 주는 것이 위험하지 않다!!!
+*/
+#if 01
+#include <stdio.h>
+#define MAX     (25)
+#define INF     (987654321)
+
+typedef struct { int y, x; }NODE;
+NODE List[6];
+
+void Input(void);
+void Operation(void);
+void DFS(int L, int y, int x);
+int Get_Diff(void);
+
+void Print_List(int L);
+void Print_Visit(void);
+
+int N;
+int City[MAX][MAX];
+int Visit[MAX][MAX] = { 0 };
+int dy[5] = { 0, -1, 1, 1, -1 };
+int dx[5] = { 0, 1, 1, -1, -1 };
+int sy, sx;
+int min_diff;
+int total_sum;
+
+int main(void)
+{
+        Input();
+        Operation();
+        printf("%d\n", min_diff);
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        total_sum = 0;
+        scanf("%d", &N);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        scanf("%d", &City[i][j]);
+                        total_sum += City[i][j];
+                }
+        }
+}
+
+void Operation(void)
+{
+        int i, j;
+
+        min_diff = INF;
+        for(i = 2; i < N; i++)
+        {
+                for(j = 1; j < N - 1; j++)
+                {
+                        sy = i;         sx = j;
+                        List[1] = (NODE) { i, j };
+                        Visit[i][j] = 1;
+
+                        DFS(1, i, j);
+
+                        Visit[i][j] = 0;
+                        List[1] = (NODE) { 0, 0 };
+                }
+        }
+}
+
+void DFS(int L, int y, int x)
+{
+        int ny, nx, r;
+
+        if(min_diff == 0) return;
+        if(L > 1 && x <= sx) return;
+        if(L >= 4)
+        {
+                if(sy + 1 == y && sx + 1 == x)
+                {
+                        /*
+                        Print_List(L);
+                        Print_Visit();
+                        getch();
+                        */
+                        r = Get_Diff();
+                        if(min_diff > r) min_diff = r;
+                        return;
+                }
+                //return;
+        }
+
+        ny = y + dy[L];            nx = x + dx[L];
+        if(ny < 1 || ny > N || nx < 1 || nx > N || Visit[ny][nx]) return;
+        Visit[ny][nx] = 1;
+        DFS(L, ny, nx);
+        //Visit[ny][nx] = 0;
+
+        //Visit[ny][nx] = 1;
+        List[L + 1] = (NODE) { ny, nx };        // 구조체 선언 시, List[5]로 해놓으면, 이 부분에서 문제가 생김!! => 넉넉하게 잡아야 함 ㅠ
+        DFS(L + 1, ny, nx);
+        List[L + 1] = (NODE) { 0, 0 };
+        Visit[ny][nx] = 0;
+}
+
+int Get_Diff(void)
+{
+        int i, j;
+        int sum[6] = { 0 };
+        int max = 0;
+        int min = INF;
+
+        for(i = 1; i < List[1].y; i++)
+        {
+                for(j = 1; j <= List[2].x; j++)
+                {
+                        if(Visit[i][j]) break;
+                        sum[1] += City[i][j];
+                }
+        }
+
+        for(i = 1; i <= List[3].y; i++)
+        {
+                for(j = N; j > List[2].x; j--)
+                {
+                        if(Visit[i][j]) break;
+                        sum[2] += City[i][j];
+                }
+        }
+
+        for(i = List[1].y; i <= N; i++)
+        {
+                for(j = 1; j < List[4].x; j++)
+                {
+                        if(Visit[i][j]) break;
+                        sum[3] += City[i][j];
+                }
+        }
+
+        for(i = List[3].y + 1; i <= N; i++)
+        {
+                for(j = N; j >= List[4].x; j--)
+                {
+                        if(Visit[i][j]) break;
+                        sum[4] += City[i][j];
+                }
+        }
+
+        sum[5] = total_sum - sum[1] - sum[2] - sum[3] - sum[4];
+
+        for(i = 1; i <= 5; i++)
+        {
+                if(max < sum[i]) max = sum[i];
+                if(min > sum[i]) min = sum[i];
+        }
+        /*
+        printf("Print_Sum\n");
+        for(i = 1; i <= 5; i++) printf("sum[%d] = %d // ", i, sum[i]);
+        printf("\n\n");
+        printf("%d == %d ?\n\n", total_sum, sum[1]+sum[2]+sum[3]+sum[4]+sum[5]);
+        printf("max = %d, min = %d\n\n", max, min);
+        */
+        return (max - min);
+}
+
+void Print_List(int L)
+{
+        int i;
+        printf("Print_List\n");
+        for(i = 1; i <= L; i++) printf("[%d]y = %d, x = %d // ", i, List[i].y, List[i].x);
+        printf("\n");
+}
+
+void Print_Visit(void)
+{
+       int i, j;
+       printf("Print_Visit\n");
+       for(i = 1; i <= N; i++)
+       {
+               for(j = 1; j <= N; j++)
+               {
+                       printf("%d ", Visit[i][j]);
+               }
+               printf("\n");
+       }
+       printf("\n");
+}
+#endif
