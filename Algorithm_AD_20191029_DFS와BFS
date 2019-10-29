@@ -1,0 +1,82 @@
+#include <stdio.h>
+#define MAX	(1010)
+
+void Input(void);
+void DFS(int L, int s);
+void BFS(int s);
+void Print_BFS(void);
+
+int N, M, V;
+int Injub[MAX][MAX];
+int Visit_D[MAX];
+int Que[MAX];
+int Wp, Rp, order;
+int List_B[MAX], Visit_B[MAX];
+
+int main(void)
+{
+	Input();
+	BFS(V);
+	DFS(1, V);
+	Print_BFS();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, s, e;
+
+	scanf("%d %d %d", &N, &M, &V);
+	for (i = 1; i <= M; i++)
+	{
+		scanf("%d %d", &s, &e);
+		Injub[s][e] = Injub[e][s] = 1;
+	}
+}
+
+void DFS(int L, int s)
+{
+	int i;
+
+	printf("%d ", s);
+	Visit_D[s] = 1;
+	//printf("L = %d, s = %d\n", L, s);
+	//getch();
+	if (L == N) return;
+
+	for (i = 1; i <= N; i++)
+	{
+		if ( !Injub[s][i] || Visit_D[i] ) continue;
+		DFS(L + 1, i);
+	}
+}
+
+void BFS(int s)
+{
+	int out, i;
+
+	order = 0;
+	Wp = Rp = 0;
+	Que[Wp++] = s;
+	Visit_B[s] = 1;
+	List_B[++order] = s;
+	while (Wp > Rp)
+	{
+		out = Que[Rp++];
+		for (i = 1; i <= N; i++)
+		{
+			if ( !Injub[out][i] || Visit_B[i] ) continue;
+			Que[Wp++] = i;
+			Visit_B[i] = 1;
+			List_B[++order] = i;
+		}
+	}
+}
+void Print_BFS(void)
+{
+	int i;
+	printf("\n");
+	for (i = 1; i <= order; i++) printf("%d ", List_B[i]);
+	printf("\n");
+}
