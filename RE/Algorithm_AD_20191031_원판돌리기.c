@@ -11,6 +11,163 @@ void Operation(void);
 void Injub(void);
 void Avg_Operation(void);
 void Print_Result(void);
+
+int N, M, T;
+int X[MAX];	// 이 값의 배수의 원판을 돌려야 함
+int D[MAX];	// 0 : 시계방향		1 : 반시계방향
+int K[MAX];	// K칸 만큼 가는 것
+int Board[MAX][MAX];
+int d_other[4] = { 0, 0, -1, 1 };
+int d_same[4] = { -1, 1, 0, 0 };
+
+int main(void)
+{
+	Input();
+	Operation();
+	Print_Result();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	scanf("%d %d %d", &N, &M, &T);
+	for (i = 1; i <= N; i++) for (j = 1; j <= M; j++) scanf("%d", &Board[i][j]);
+	for (i = 1; i <= T; i++) scanf("%d %d %d", &X[i], &D[i], &K[i]);
+}
+
+void Operation(void)
+{
+	int i, j, daesang;
+
+	for (i = 1; i <= T; i++)
+	{
+		daesang = X[i];	// 몇의 배수인지?
+		for (j = daesang; j <= N; j += daesang) Rotate(j, D[i], K[i]);	// 그 배수 번호가 붙은 원판 모두 다 돌려봄
+		// ★★★★★하아.... N을 써줬어야 했는데 M이라고 써서.... 테케는 케이스가 적어서 맞지만, 큰 케이스에서 막혔다...★★★★★
+		Injub();
+	}
+}
+
+void Rotate(int num, int dir, int cnt)
+{
+	int i, cri;	// cri는 기준이라는 의미!
+	int tmp[MAX] = { 0 };
+
+	for (i = 1; i <= M; i++) tmp[i] = Board[num][i];	// 일단 num번째 tmp판의 수를 그대로 복사해줌
+
+	if (dir)	// 반시계
+	{
+		cri = 1;
+		for (i = M + 1 - cnt; i <= M; i++) Board[num][i] = tmp[cri++]; 
+		for (i = 1; i <= M - cnt; i++) Board[num][i] = tmp[cri++];
+	}
+	else        // 시계
+	{
+		cri = M;
+		for (i = cnt; i >= 1; i--) Board[num][i] = tmp[cri--];
+		for (i = M; i > cnt; i--) Board[num][i] = tmp[cri--];
+	}
+}
+
+void Injub(void)
+{
+	int i, j, d, same_flag = 0, avg_flag = 1;
+	int ni, nj;
+	int chk[MAX][MAX] = { 0 };
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= M; j++)
+		{
+			if (Board[i][j] <= 0) continue;
+			same_flag = 0;
+			for (d = 0; d < 4; d++)
+			{
+				ni = i + d_other[d];		nj = j + d_same[d];
+				if (ni < 1 || ni > N) continue;
+				if (nj < 1) nj = M;
+				else if (nj > M) nj = 1;
+				if ( Board[i][j] == Board[ni][nj] && !chk[ni][nj] )
+				{
+					chk[ni][nj] = 1;
+					same_flag = 1;		avg_flag = 0;
+				}
+			}
+			if (same_flag) chk[i][j] = 1;
+		}
+	}
+
+	for(i = 1; i <= N; i++)
+	{
+		for(j = 1; j <= M; j++)
+		{
+			if(chk[i][j]) Board[i][j] = 0;
+		} 
+	}
+
+	if ( avg_flag ) Avg_Operation();
+}
+
+void Avg_Operation(void)
+{
+	int i, j;
+	int sum = 0, cnt = 0;
+	double avg;
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= M; j++)
+		{
+			if (Board[i][j] <= 0) continue;
+			sum += Board[i][j];		cnt++;
+		}
+	}
+
+	if ( cnt == 0 ) return;
+	avg = (double)sum / cnt;
+    
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= M; j++)
+		{
+			if (Board[i][j] <= 0) continue;
+			if (Board[i][j] > avg) Board[i][j]--;
+			else if (Board[i][j] < avg) Board[i][j]++;
+		}
+	}
+}
+
+void Print_Result(void)
+{
+	int i, j, sum = 0;
+
+	for (i = 1; i <= N; i++)
+	{
+		for (j = 1; j <= M; j++)
+		{
+            if(Board[i][j] <= 0) continue;
+			sum += Board[i][j];
+		}
+	}
+
+	printf("%d\n", sum);
+}
+#endif
+
+
+#if 01
+#include <stdio.h>
+#define MAX	(60)
+
+void Input(void);
+void Rotate(int num, int dir, int cnt);
+void Operation(void);
+void Injub(void);
+void Avg_Operation(void);
+void Print_Result(void);
 void Print_Board(void);
 
 int N, M, T;
