@@ -6,6 +6,8 @@
 	1. visit배열의 의미!! : visit 배열은 0으로 풀어주기 전까지 같은 곳을 중복해서 또 방문할 수 없다는 의미!!
 					- 그래서 visit으로 막힌 다음에 (바로 뒤로 돌아가는 행동만 있는 것이 아니니)
 					   어떻게 진행되는지 살펴보자!!
+					- 이 문제에서 visit은 이미 InQ를 해줬으니, 다시 할 필요가 없다는 의미!
+					  ( 만약 map이 0이라면, 어차피 if( map[ny][nx] ) 라는 조건에 충족하지 않아 인큐도 되지 않을 것! )
 			       && greedy => 가장 좋은 경험을 저장시켜주는 용도!!
 			       		- 특히 -1이나 엄청나게 큰 수로 초기화를 시켜놓고
 					  최소값을 갱신하는데 사용함!
@@ -157,9 +159,9 @@ void BFS(int s)
 			{
 				ny = sy + dy[i] * j;	nx = sx + dx[i] * j;
 				if (ny < 1 || ny > H || nx < 1 || nx > W || visit[ny][nx] ) continue;
-				visit[ny][nx] = 1;
 				if (map[ny][nx])
 				{
+					visit[ny][nx] = 1;
 					InQ(ny, nx, map[ny][nx] - 1);
 					map[ny][nx] = 0;
 				}
