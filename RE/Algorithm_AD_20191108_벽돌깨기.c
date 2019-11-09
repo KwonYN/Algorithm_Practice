@@ -1,8 +1,24 @@
-#pragma warning (disable: 4996)
-
 // 20191108
 // [SWEA. 5656] 벽돌 깨기
-#if 01
+
+/*
+	[오늘의 교훈]
+	1. visit배열의 의미!! : visit 배열은 0으로 풀어주기 전까지 같은 곳을 중복해서 또 방문할 수 없다는 의미!!
+					- 그래서 visit으로 막힌 다음에 (바로 뒤로 돌아가는 행동만 있는 것이 아니니)
+					   어떻게 진행되는지 살펴보자!!
+			       && greedy => 가장 좋은 경험을 저장시켜주는 용도!!
+			       		- 특히 -1이나 엄청나게 큰 수로 초기화를 시켜놓고
+					  최소값을 갱신하는데 사용함!
+		==> 이렇게 크게 두 가지 의미가 있으니 까먹지 말 것!
+		
+	2. 배열의 범위 - Segmentation Fault
+		- 프로젝트 때 뿐만이 아니라, 알고리즘에서도 배열의 잘못된 인덱스를 참조하는 일이 많음!
+		- 이 문제에서는 queue에 넣을 때 map의 범위를 벗어나는 것을 넣어줬기 때문에 48/50이라고 생각...
+			( 물론 이것은 Segmentation Fault는 아니지만!! )
+		- 이중for문 돌 때, 인덱스를 바꿔 쓰거나, ++, --가 물린다면 무한루프 빠질 위험이 있어!!
+			( 빨간 포인트 찍고, F5, 그리고 조사식에서 원하는 변수를 넣은 다음, F10으로 다음 다음!! 변화하는 것을 찍어보자! )
+*/
+#if 0
 #include <stdio.h>
 #define MAX	(20)
 
@@ -26,6 +42,7 @@ void Print_map(void);
 
 int T, N, W, H;
 int map[MAX][MAX];
+int visit[MAX][MAX];
 int cpymap[6][MAX][MAX];
 int min_bricks;
 int wp, rp;
@@ -125,10 +142,11 @@ void BFS(int s)
 
 	for (i = 1; i <= H; i++) if (map[i][s]) break;
 
-	if (i > H) return;
+	if (i > H) return; //
 	wp = rp = 0;
 	InQ(i, s, map[i][s] - 1);
 	map[i][s] = 0;
+	visit[i][s] = 1;
 	while (wp > rp)
 	{
 		out = OutQ();
@@ -138,7 +156,8 @@ void BFS(int s)
 			for (j = 1; j <= sl; j++)
 			{
 				ny = sy + dy[i] * j;	nx = sx + dx[i] * j;
-				if (ny < 1 || ny > H || nx < 1 || nx > W ) continue;
+				if (ny < 1 || ny > H || nx < 1 || nx > W || visit[ny][nx] ) continue;
+				visit[ny][nx] = 1;
 				if (map[ny][nx])
 				{
 					InQ(ny, nx, map[ny][nx] - 1);
@@ -158,6 +177,7 @@ void Gravity(void)
 		cri = H;
 		for (i = H; i >= 1; i--)
 		{
+			visit[i][j] = 0;
 			if (map[i][j] == 0) continue;
 			map[cri--][j] = map[i][j];
 		}
