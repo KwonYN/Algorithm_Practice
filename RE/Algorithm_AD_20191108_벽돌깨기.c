@@ -2,7 +2,7 @@
 
 // 20191108
 // [SWEA. 5656] 벽돌 깨기
-#if 0
+#if 01
 #include <stdio.h>
 #define MAX	(20)
 
